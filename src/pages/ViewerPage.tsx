@@ -83,12 +83,15 @@ export default function ViewerPage() {
 
       setProgressMessage("Processing and optimizing images...");
       
+      let finalMarkdown = result;
       if (presentationConfig.imageSource === 'unsplash') {
-        const markdownWithImages = await replaceImagePlaceholders(result);
-        setMarkdown(markdownWithImages);
-      } else {
-        setMarkdown(result);
+        const markdownWithImages = await replaceImagePlaceholders(result, (status) => {
+          setProgressMessage(status);
+        });
+        finalMarkdown = markdownWithImages;
       }
+      
+      setMarkdown(finalMarkdown);
 
       const generationTime = generationStartTime 
         ? Math.round((Date.now() - generationStartTime) / 1000) 
