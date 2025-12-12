@@ -84,30 +84,17 @@ export default function HomePage() {
 
   if (isLoading || markdown) {
     return (
-      <div className="h-screen flex flex-col bg-background">
+      <div className="h-screen flex flex-col">
         {isLoading ? (
           <LoadingState />
         ) : (
-          <>
-            <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
-              <h1 className="text-xl font-semibold">Your Presentation</h1>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setMarkdown("");
-                    setPrompt("");
-                  }}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  New Presentation
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <SlideViewer markdown={markdown} />
-            </div>
-          </>
+          <SlideViewer 
+            markdown={markdown} 
+            onNewPresentation={() => {
+              setMarkdown("");
+              setPrompt("");
+            }}
+          />
         )}
       </div>
     );

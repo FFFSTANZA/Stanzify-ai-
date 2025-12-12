@@ -212,4 +212,36 @@ All colors MUST be HSL.
   .prose .grid > div {
     @apply flex flex-col justify-center;
   }
+
+  /* Loading animations */
+  @keyframes loading-bar {
+    0% {
+      width: 0%;
+    }
+    50% {
+      width: 70%;
+    }
+    100% {
+      width: 100%;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-loading-bar {
+    animation: loading-bar 3s ease-in-out infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
 }
