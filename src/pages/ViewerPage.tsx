@@ -39,6 +39,7 @@ export default function ViewerPage() {
         fonts: { id: 'modern', name: 'Modern Sans', heading: 'Inter', body: 'Inter' },
         style: presentationConfig.designStyle,
         purpose: presentationConfig.slidePurpose,
+        imageSource: presentationConfig.imageSource,
       };
 
       const result = await generateSlides({
