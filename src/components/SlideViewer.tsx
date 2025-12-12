@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Download, Maximize2, Edit } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import mermaid from "mermaid";
+import "katex/dist/katex.min.css";
 
 interface SlideViewerProps {
   markdown: string;
@@ -27,10 +30,31 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
   }, []);
 
   useEffect(() => {
+    // Parse slides and extract frontmatter/layout information
     const slideArray = markdown
       .split("---")
       .map((slide) => slide.trim())
+      .filter((slide) => slide.length > 0)
+      .map((slide) => {
+        // Remove Slidev frontmatter but keep the content
+        const lines = slide.split('\n');
+        const cleanedLines = lines.filter(line => {
+          // Remove layout, transition, class directives but keep content
+          return !line.startsWith('layout:') && 
+                 !line.startsWith('transition:') && 
+                 !line.startsWith('class:') &&
+                 !line.startsWith('theme:') &&
+                 !line.startsWith('background:') &&
+                 !line.startsWith('highlighter:') &&
+                 !line.startsWith('lineNumbers:') &&
+                 !line.startsWith('drawings:') &&
+                 !line.startsWith('title:') &&
+                 !line.startsWith('persist:');
+        });
+        return cleanedLines.join('\n').trim();
+      })
       .filter((slide) => slide.length > 0);
+    
     setSlides(slideArray);
     setCurrentSlide(0);
   }, [markdown]);
@@ -107,7 +131,8 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
         >
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
               components={{
                 code({ className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || '');
@@ -128,6 +153,7 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
                       language={match[1]}
                       PreTag="div"
                       className="rounded-lg my-4"
+                      showLineNumbers={true}
                       {...props}
                     >
                       {codeString}

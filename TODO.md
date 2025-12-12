@@ -1,4 +1,4 @@
-# Task: Build Stanzify - AI Presentation Generator (Phase 3 - UI Redesign)
+# Task: Build Stanzify - AI Presentation Generator (Phase 4 - Advanced Slidev Features)
 
 ## Phase 1 - Completed ✓
 - [x] Basic AI presentation generation
@@ -14,55 +14,89 @@
 - [x] Enhanced AI prompts
 - [x] Modern UI redesign
 
-## Phase 3 - Two-Page Workflow (Bolt/Rocket Style) ✓
-- [x] Step 1: Create Page 1 - Create Presentation Page
-  - [x] Full white/clean background
-  - [x] Center-aligned layout
-  - [x] Big typography
-  - [x] Inline style selection (before generation)
-  - [x] Color palette selector (5 options)
-  - [x] Design style selector (6 options)
-  - [x] Image source preference (3 options)
-  - [x] Slide purpose selector (6 options)
-  - [x] Large prompt textarea
-  - [x] Premium CTA button
-- [x] Step 2: Update Page 2 - Presentation Viewer
-  - [x] Separate route from Page 1
-  - [x] Full screen slide viewer
-  - [x] Navigation panel
-  - [x] Export options (Download markdown)
-  - [x] Regenerate functionality
-  - [x] Back to create option
-- [x] Step 3: Update Routing
-  - [x] Home route → Create Page
-  - [x] Viewer route → Presentation Viewer
-  - [x] Pass data between pages via localStorage
-- [x] Step 4: Premium UI Polish
+## Phase 3 - Two-Page Workflow ✓
+- [x] Two-page workflow (Create → Viewer)
+- [x] Clean, premium UI
+- [x] All customization options
+
+## Phase 4 - Three-Page Flow with Full Slidev Power ✓
+- [x] Step 1: Page 1 - Prompt Page
+  - [x] Clean, focused prompt input
+  - [x] Big typography and premium design
+  - [x] Example prompts for inspiration
+  - [x] Gradient background
   - [x] Smooth animations
-  - [x] Rounded edges (rounded-xl)
-  - [x] Light shadows (shadow-elegant)
-  - [x] Hover effects (hover:scale-105)
-  - [x] Loading transitions
-- [x] Step 5: Testing & Validation
-  - [x] Test two-page flow
-  - [x] Verify all customization options
-  - [x] Test export functionality
-  - [x] Run lint checks
+- [x] Step 2: Page 2 - Customize Page
+  - [x] Color palette selection (5 options)
+  - [x] Design style selection (6 options)
+  - [x] Image source preference (3 options)
+  - [x] Slide purpose selection (6 options)
+  - [x] Visual preview of selections
+  - [x] Advanced features badge
+- [x] Step 3: Page 3 - Viewer & Present Page
+  - [x] Full-screen slide viewer
+  - [x] Navigation controls
+  - [x] Regenerate functionality
+  - [x] Download markdown
+  - [x] Fullscreen mode
+- [x] Step 4: Advanced Slidev Features
+  - [x] Slidev frontmatter support
+  - [x] Advanced layouts (cover, center, two-cols, etc.)
+  - [x] Transitions (slide-left, fade, zoom, etc.)
+  - [x] v-click animations for progressive disclosure
+  - [x] Code blocks with line numbers
+  - [x] Mermaid diagrams (flowcharts, sequence, etc.)
+  - [x] Math equations (KaTeX support)
+  - [x] Custom CSS classes
+  - [x] Speaker notes
+  - [x] Image positioning
+- [x] Step 5: Enhanced AI Prompt
+  - [x] Comprehensive Slidev feature instructions
+  - [x] Layout variety requirements
+  - [x] Advanced markdown syntax
+  - [x] Progressive disclosure patterns
+  - [x] Visual element guidelines
+  - [x] Increased token limit (4000)
+- [x] Step 6: Testing & Validation
+  - [x] Three-page flow working
+  - [x] All Slidev features in prompt
+  - [x] Math equations rendering
+  - [x] Code line numbers working
+  - [x] All lint checks passing
 
 ## Completed Features ✓
-- ✅ Two-page workflow (Create → Viewer)
-- ✅ 5 color palettes (Minimal White, Blue Tech, Sunset Orange, Forest Green, Royal Purple)
-- ✅ 6 design styles (Minimal Professional, Modern Gradient, Corporate Sharp, Dark Mode, Creative/Vibrant, Academic Clean)
-- ✅ 3 image source options (Upload, Unsplash, None)
-- ✅ 6 slide purposes (Pitch Deck, Educational, Business Report, Marketing, Webinar, Personal/Creative)
-- ✅ Clean, premium UI inspired by Bolt/Rocket/Loveable
-- ✅ Inline customization before generation
-- ✅ Separate viewer page with regenerate option
-- ✅ All lint checks passing (77 files)
+- ✅ Three-page workflow (Prompt → Customize → Viewer)
+- ✅ Full Slidev feature support in AI generation
+- ✅ Math equations with KaTeX
+- ✅ Code syntax highlighting with line numbers
+- ✅ Mermaid diagrams
+- ✅ Advanced layouts (cover, two-cols, center, etc.)
+- ✅ Transitions and animations
+- ✅ v-click progressive disclosure
+- ✅ Custom CSS classes
+- ✅ Speaker notes support
+- ✅ 5 color palettes
+- ✅ 6 design styles
+- ✅ 3 image source options
+- ✅ 6 slide purposes
+- ✅ Premium UI with smooth animations
+- ✅ All lint checks passing (78 files)
+
+## Advanced Slidev Features Implemented
+1. **Frontmatter Support**: theme, background, class, highlighter, lineNumbers, transitions
+2. **Layout System**: cover, center, two-cols, image-right, quote, section, fact
+3. **Transitions**: slide-left, slide-up, fade, zoom
+4. **Animations**: v-click for progressive disclosure
+5. **Code Features**: Line numbers, syntax highlighting, line highlighting
+6. **Diagrams**: Mermaid flowcharts, sequence diagrams, etc.
+7. **Math**: KaTeX for inline and display equations
+8. **Styling**: Custom CSS classes, gradients, shadows
+9. **Notes**: Speaker notes support
+10. **Images**: Advanced positioning with CSS classes
 
 ## Notes
-- Inspiration: Bolt, Rocket, Loveable, MeDo ✓
-- Two-page workflow for premium feel ✓
-- Clean, minimalistic design ✓
-- User chooses style BEFORE generation ✓
-- All Phase 3 features implemented successfully
+- Three-page flow for better UX ✓
+- Full Slidev power in AI generation ✓
+- Advanced features prominently displayed ✓
+- Math equations, diagrams, code all supported ✓
+- Professional, powerful presentations ✓

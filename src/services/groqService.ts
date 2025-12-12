@@ -17,79 +17,198 @@ interface ThemeConfig {
     body: string;
   };
   style: string;
+  purpose: string;
 }
 
-function buildEnhancedPrompt(userPrompt: string, theme: ThemeConfig): string {
-  return `You are an expert Slidev presentation designer. Generate a professional, visually engaging presentation.
+function buildAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig): string {
+  return `You are an expert Slidev presentation designer with deep knowledge of advanced presentation features. Generate a POWERFUL, professional, visually stunning presentation using FULL Slidev capabilities.
 
 TOPIC: ${userPrompt}
 THEME: ${theme.palette.name}
 COLORS: Primary: ${theme.palette.primary}, Secondary: ${theme.palette.secondary}, Accent: ${theme.palette.accent}
 STYLE: ${theme.style} (${getStyleDescription(theme.style)})
+PURPOSE: ${theme.purpose}
 
-REQUIREMENTS:
+CRITICAL REQUIREMENTS - USE ADVANCED FEATURES:
 
-1. **Structure & Layout**:
-   - Start with an engaging title slide
-   - Create 5-7 well-structured content slides
-   - Use section dividers every 3-4 slides
-   - Max 5 bullets per slide (split long content)
-   - Vary slide layouts (not all bullets)
-   - End with a conclusion or call-to-action slide
+1. **Slidev Frontmatter** (First slide MUST have):
+\`\`\`yaml
+---
+theme: default
+background: gradient
+class: text-center
+highlighter: shiki
+lineNumbers: true
+drawings:
+  persist: false
+transition: slide-left
+title: [Your Title]
+---
+\`\`\`
 
-2. **Advanced Features**:
-   - Use Mermaid diagrams where appropriate (flowcharts, timelines, process diagrams)
-   - Add code blocks with proper language tags if technical content
-   - Use multi-column layouts for comparisons
-   - Include callouts or blockquotes for important points
-   - Add proper heading hierarchy (# for titles, ## for sections)
+2. **Advanced Layouts** - Use these Slidev layouts:
+   - \`layout: cover\` - For title slide with full background
+   - \`layout: center\` - For centered content
+   - \`layout: two-cols\` - For side-by-side comparisons
+   - \`layout: image-right\` - Image on right, content on left
+   - \`layout: quote\` - For impactful quotes
+   - \`layout: section\` - For section dividers
+   - \`layout: fact\` - For highlighting key statistics
 
-3. **Visual Elements**:
-   - Identify 3-5 key slides that need images
-   - Format: ![descriptive alt text](IMAGE_PLACEHOLDER_keyword)
-   - Keywords should be specific and relevant (e.g., "business_meeting", "data_analytics", "team_collaboration")
-   - Use emojis sparingly for visual interest
+Example:
+\`\`\`
+---
+layout: two-cols
+---
 
-4. **Content Guidelines**:
-   - Keep text concise and impactful
-   - Use strong action verbs
-   - Include relevant statistics or data points
-   - Add speaker notes for key slides using <!-- notes --> syntax
-   - Progressive disclosure with v-click where appropriate
+# Left Column
+Content here
 
-5. **Markdown Syntax**:
-   - Use --- to separate slides
-   - Use proper markdown formatting (bold, italic, lists)
-   - Include horizontal rules (---) for visual breaks within slides
-   - Use > for blockquotes/callouts
+::right::
+
+# Right Column
+Content here
+\`\`\`
+
+3. **Transitions** - Add different transitions:
+   - \`transition: slide-left\`
+   - \`transition: slide-up\`
+   - \`transition: fade\`
+   - \`transition: zoom\`
+
+4. **v-click Animations** - Progressive disclosure:
+\`\`\`
+- First point
+- Second point {.v-click}
+- Third point {.v-click}
+- Fourth point {.v-click}
+\`\`\`
+
+5. **Code Blocks with Advanced Features**:
+\`\`\`typescript {all|1-3|5-8|10}
+// Line highlighting and stepping
+function example() {
+  const data = fetchData();
+  
+  return data.map(item => ({
+    id: item.id,
+    name: item.name
+  }));
+  
+  console.log('Done!');
+}
+\`\`\`
+
+6. **Mermaid Diagrams** - Use extensively:
+\`\`\`mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[End]
+    D --> E
+\`\`\`
+
+\`\`\`mermaid
+sequenceDiagram
+    participant User
+    participant System
+    User->>System: Request
+    System-->>User: Response
+\`\`\`
+
+7. **Custom Styling with Classes**:
+   - \`{.text-gradient}\` - Gradient text
+   - \`{.text-shadow}\` - Text with shadow
+   - \`{.opacity-80}\` - Transparency
+   - \`{.text-3xl}\` - Large text
+
+8. **Images with Positioning**:
+\`\`\`
+![Image Description](IMAGE_PLACEHOLDER_keyword){.absolute.top-10.right-10.w-40.rounded-lg.shadow-xl}
+\`\`\`
+
+9. **Math Equations** (if relevant):
+\`\`\`
+$E = mc^2$
+
+$$
+\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
+$$
+\`\`\`
+
+10. **Speaker Notes**:
+\`\`\`
+<!--
+Key talking points:
+- Emphasize this
+- Don't forget to mention that
+- Time: 2 minutes
+-->
+\`\`\`
+
+11. **Custom CSS Classes**:
+\`\`\`
+<div class="grid grid-cols-3 gap-4">
+  <div class="bg-blue-500 p-4 rounded">Box 1</div>
+  <div class="bg-green-500 p-4 rounded">Box 2</div>
+  <div class="bg-red-500 p-4 rounded">Box 3</div>
+</div>
+\`\`\`
+
+STRUCTURE REQUIREMENTS:
+
+1. **Title Slide** (layout: cover):
+   - Engaging title
+   - Compelling subtitle
+   - Background gradient or image
+
+2. **Agenda/Overview** (layout: default):
+   - Use v-click for each point
+   - 4-6 main topics
+
+3. **Content Slides** (8-12 slides):
+   - Vary layouts (two-cols, center, image-right)
+   - Use v-click extensively
+   - Include 2-3 Mermaid diagrams
+   - Add code blocks if technical
+   - Use custom styling
+   - Max 5 points per slide
+
+4. **Data/Statistics** (layout: fact):
+   - Highlight key numbers
+   - Use large text
+   - Visual emphasis
+
+5. **Section Dividers** (layout: section):
+   - Between major topics
+   - Bold, centered text
+
+6. **Conclusion** (layout: center):
+   - Key takeaways with v-click
+   - Call to action
+
+7. **Thank You** (layout: end):
+   - Contact information
+   - Q&A prompt
+
+VISUAL ELEMENTS:
+- Identify 5-7 slides needing images
+- Format: ![alt](IMAGE_PLACEHOLDER_keyword)
+- Use emojis strategically (📊 📈 💡 🚀 ⚡ 🎯)
+- Add custom CSS classes for styling
+- Use gradients and shadows
+
+CONTENT GUIDELINES:
+- Concise, impactful text
+- Strong action verbs
+- Data-driven insights
+- Progressive disclosure with v-click
+- Speaker notes for complex slides
+- Varied slide layouts (no repetition)
 
 OUTPUT FORMAT:
-Generate ONLY valid Slidev markdown. Start directly with the first slide. Do not include explanations or meta-commentary.
-
-Example structure:
----
-# Main Title
-Engaging subtitle
-
----
-# Introduction
-- Key point 1
-- Key point 2
-- Key point 3
-
-![relevant image](IMAGE_PLACEHOLDER_introduction_concept)
-
----
-# Section Divider
----
-# Detailed Content
-## Subsection
-
-Content with **emphasis** and *style*
-
-> Important callout or quote
-
----
+Generate ONLY valid Slidev markdown. Start with frontmatter. Use advanced features extensively. Make it POWERFUL and PROFESSIONAL.
 
 Begin generating the presentation now:`;
 }
@@ -97,11 +216,11 @@ Begin generating the presentation now:`;
 function getStyleDescription(style: string): string {
   const descriptions: Record<string, string> = {
     minimal: 'Clean and simple with lots of white space',
-    modern: 'Contemporary with gradient accents',
-    corporate: 'Professional and business-focused',
+    modern: 'Contemporary with gradient accents and animations',
+    corporate: 'Professional and business-focused with data emphasis',
     dark: 'Sleek dark theme for modern presentations',
-    creative: 'Bold and visually striking',
-    academic: 'Structured and information-dense',
+    creative: 'Bold and visually striking with unique layouts',
+    academic: 'Structured and information-dense with citations',
   };
   return descriptions[style] || 'Professional';
 }
@@ -117,7 +236,7 @@ export async function generateSlides(
 ): Promise<string> {
   const { prompt, theme, onProgress } = options;
 
-  const systemPrompt = buildEnhancedPrompt(prompt, theme);
+  const systemPrompt = buildAdvancedSlidevPrompt(prompt, theme);
 
   try {
     const stream = await groq.chat.completions.create({
@@ -129,7 +248,7 @@ export async function generateSlides(
       ],
       model: "llama-3.1-8b-instant",
       temperature: 0.7,
-      max_tokens: 3000,
+      max_tokens: 4000,
       stream: true,
     });
 
@@ -153,5 +272,6 @@ export async function generateSlides(
     );
   }
 }
+
 
 
