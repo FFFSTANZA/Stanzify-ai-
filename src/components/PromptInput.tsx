@@ -19,11 +19,11 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
   };
 
   return (
-    <div className="flex flex-col h-full p-8 space-y-6">
+    <div className="flex flex-col h-full p-6 xl:p-8 space-y-6">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold gradient-text">Tanzify</h1>
-        <p className="text-muted-foreground">
-          Transform your ideas into beautiful presentations with AI
+        <h1 className="text-3xl xl:text-4xl font-bold gradient-text">Stanzify</h1>
+        <p className="text-sm xl:text-base text-muted-foreground">
+          Transform your ideas into professional presentations with AI
         </p>
       </div>
 
@@ -37,7 +37,7 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
             placeholder="E.g., Create a presentation about the benefits of renewable energy..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="flex-1 resize-none min-h-[200px] text-base"
+            className="flex-1 resize-none min-h-[150px] xl:min-h-[200px] text-base"
             disabled={isLoading}
           />
         </div>
@@ -60,6 +60,7 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
             "Introduction to Machine Learning",
             "The Future of Sustainable Energy",
             "Building Effective Teams",
+            "Digital Marketing Strategies 2024",
           ].map((example) => (
             <button
               key={example}
@@ -76,3 +77,4 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
     </div>
   );
 }
+

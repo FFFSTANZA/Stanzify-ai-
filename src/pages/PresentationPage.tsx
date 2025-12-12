@@ -2,13 +2,17 @@ import { useState } from "react";
 import { PromptInput } from "@/components/PromptInput";
 import { SlideViewer } from "@/components/SlideViewer";
 import { LoadingState } from "@/components/LoadingState";
+import { CustomizationSidebar } from "@/components/CustomizationSidebar";
 import { generateSlides } from "@/services/groqService";
+import { replaceImagePlaceholders } from "@/services/unsplashService";
 import { toast } from "sonner";
 import { Presentation } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function PresentationPage() {
   const [markdown, setMarkdown] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { theme } = useTheme();
 
   const handleGenerate = async (prompt: string) => {
     setIsLoading(true);
@@ -19,14 +23,19 @@ export default function PresentationPage() {
 
       const result = await generateSlides({
         prompt,
+        theme,
         onProgress: (chunk) => {
           accumulatedMarkdown += chunk;
           setMarkdown(accumulatedMarkdown);
         },
       });
 
-      setMarkdown(result);
-      toast.success("Presentation generated successfully!");
+      toast.success("Presentation generated! Processing images...");
+
+      const markdownWithImages = await replaceImagePlaceholders(result);
+      setMarkdown(markdownWithImages);
+
+      toast.success("Presentation ready!");
     } catch (error) {
       console.error("Error generating slides:", error);
       toast.error(
@@ -40,7 +49,9 @@ export default function PresentationPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col xl:flex-row">
+    <div className="h-screen flex flex-col xl:flex-row relative">
+      <CustomizationSidebar />
+      
       <div className="w-full xl:w-[400px] border-b xl:border-b-0 xl:border-r border-border bg-card">
         <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
       </div>
@@ -58,7 +69,7 @@ export default function PresentationPage() {
                 Ready to Create
               </h2>
               <p className="text-muted-foreground max-w-md">
-                Enter your topic on the left to generate a beautiful
+                Enter your topic on the left to generate a professional
                 presentation powered by AI
               </p>
             </div>

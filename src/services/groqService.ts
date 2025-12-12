@@ -1,53 +1,108 @@
 import Groq from "groq-sdk";
+import type { PresentationTheme } from "@/types/theme";
 
 const groq = new Groq({
   apiKey: "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",
   dangerouslyAllowBrowser: true,
 });
 
-const SLIDEV_PROMPT_TEMPLATE = `You are a Slidev markdown expert. Generate a professional presentation based on the user's topic.
+function buildEnhancedPrompt(userPrompt: string, theme: PresentationTheme): string {
+  return `You are an expert Slidev presentation designer. Generate a professional, visually engaging presentation.
 
-Requirements:
-- Start with a title slide that includes the main topic
-- Create 5-7 content slides with clear information
-- Use proper Slidev syntax with --- as slide separators
-- Include clear headers using # or ##
-- Use bullet points for lists
-- Add one section divider slide (use # with just a title)
-- Keep content concise and professional
-- Use proper markdown formatting
+TOPIC: ${userPrompt}
+THEME: ${theme.palette.name}
+COLORS: Primary: ${theme.palette.primary}, Secondary: ${theme.palette.secondary}, Accent: ${theme.palette.accent}
+STYLE: ${theme.style} (${getStyleDescription(theme.style)})
 
-Topic: {USER_PROMPT}
+REQUIREMENTS:
 
-Output ONLY valid Slidev markdown. Do not include any explanations or additional text outside the markdown.
+1. **Structure & Layout**:
+   - Start with an engaging title slide
+   - Create 5-7 well-structured content slides
+   - Use section dividers every 3-4 slides
+   - Max 5 bullets per slide (split long content)
+   - Vary slide layouts (not all bullets)
+   - End with a conclusion or call-to-action slide
 
-Example format:
+2. **Advanced Features**:
+   - Use Mermaid diagrams where appropriate (flowcharts, timelines, process diagrams)
+   - Add code blocks with proper language tags if technical content
+   - Use multi-column layouts for comparisons
+   - Include callouts or blockquotes for important points
+   - Add proper heading hierarchy (# for titles, ## for sections)
+
+3. **Visual Elements**:
+   - Identify 3-5 key slides that need images
+   - Format: ![descriptive alt text](IMAGE_PLACEHOLDER_keyword)
+   - Keywords should be specific and relevant (e.g., "business_meeting", "data_analytics", "team_collaboration")
+   - Use emojis sparingly for visual interest
+
+4. **Content Guidelines**:
+   - Keep text concise and impactful
+   - Use strong action verbs
+   - Include relevant statistics or data points
+   - Add speaker notes for key slides using <!-- notes --> syntax
+   - Progressive disclosure with v-click where appropriate
+
+5. **Markdown Syntax**:
+   - Use --- to separate slides
+   - Use proper markdown formatting (bold, italic, lists)
+   - Include horizontal rules (---) for visual breaks within slides
+   - Use > for blockquotes/callouts
+
+OUTPUT FORMAT:
+Generate ONLY valid Slidev markdown. Start directly with the first slide. Do not include explanations or meta-commentary.
+
+Example structure:
 ---
 # Main Title
-Subtitle or tagline
+Engaging subtitle
+
 ---
-# Section 1
-- Point 1
-- Point 2
-- Point 3
+# Introduction
+- Key point 1
+- Key point 2
+- Key point 3
+
+![relevant image](IMAGE_PLACEHOLDER_introduction_concept)
+
 ---
 # Section Divider
 ---
-# Section 2
-Content here
----`;
+# Detailed Content
+## Subsection
+
+Content with **emphasis** and *style*
+
+> Important callout or quote
+
+---
+
+Begin generating the presentation now:`;
+}
+
+function getStyleDescription(style: string): string {
+  const descriptions: Record<string, string> = {
+    minimal: 'Clean and simple with lots of white space',
+    corporate: 'Professional and business-focused',
+    creative: 'Bold and visually striking',
+    academic: 'Structured and information-dense',
+  };
+  return descriptions[style] || 'Professional';
+}
 
 export interface GenerateSlidesOptions {
   prompt: string;
+  theme: PresentationTheme;
   onProgress?: (chunk: string) => void;
 }
 
 export async function generateSlides(
   options: GenerateSlidesOptions
 ): Promise<string> {
-  const { prompt, onProgress } = options;
+  const { prompt, theme, onProgress } = options;
 
-  const systemPrompt = SLIDEV_PROMPT_TEMPLATE.replace("{USER_PROMPT}", prompt);
+  const systemPrompt = buildEnhancedPrompt(prompt, theme);
 
   try {
     const stream = await groq.chat.completions.create({
@@ -59,7 +114,7 @@ export async function generateSlides(
       ],
       model: "llama-3.1-8b-instant",
       temperature: 0.7,
-      max_tokens: 2048,
+      max_tokens: 3000,
       stream: true,
     });
 
@@ -83,3 +138,4 @@ export async function generateSlides(
     );
   }
 }
+

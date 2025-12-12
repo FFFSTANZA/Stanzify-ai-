@@ -10,7 +10,7 @@ interface RouteConfig {
 
 const routes: RouteConfig[] = [
   {
-    name: 'Tanzify',
+    name: 'Stanzify',
     path: '/',
     element: <PresentationPage />
   }

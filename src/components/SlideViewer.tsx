@@ -1,17 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Maximize2, Edit } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import mermaid from "mermaid";
 
 interface SlideViewerProps {
   markdown: string;
+  onEdit?: () => void;
 }
 
-export function SlideViewer({ markdown }: SlideViewerProps) {
+export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
   const [slides, setSlides] = useState<string[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const mermaidRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose',
+    });
+  }, []);
 
   useEffect(() => {
     const slideArray = markdown
@@ -21,6 +34,20 @@ export function SlideViewer({ markdown }: SlideViewerProps) {
     setSlides(slideArray);
     setCurrentSlide(0);
   }, [markdown]);
+
+  useEffect(() => {
+    if (mermaidRef.current) {
+      const mermaidElements = mermaidRef.current.querySelectorAll('.mermaid');
+      mermaidElements.forEach((element, index) => {
+        const code = element.textContent || '';
+        mermaid.render(`mermaid-${index}-${Date.now()}`, code).then(({ svg }) => {
+          element.innerHTML = svg;
+        }).catch((error) => {
+          console.error('Mermaid rendering error:', error);
+        });
+      });
+    }
+  }, [currentSlide, slides]);
 
   const goToNextSlide = () => {
     if (currentSlide < slides.length - 1) {
@@ -74,9 +101,45 @@ export function SlideViewer({ markdown }: SlideViewerProps) {
       className={`flex flex-col ${isFullscreen ? "fixed inset-0 z-50 bg-background" : "h-full"}`}
     >
       <div className="flex-1 flex items-center justify-center p-4 xl:p-8 overflow-auto">
-        <div className="w-full max-w-5xl aspect-video bg-card rounded-xl shadow-elegant p-8 xl:p-12 overflow-auto transition-smooth">
+        <div 
+          ref={mermaidRef}
+          className="w-full max-w-5xl aspect-video bg-card rounded-xl shadow-elegant p-6 xl:p-12 overflow-auto transition-smooth"
+        >
           <div className="prose prose-lg dark:prose-invert max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code({ className, children, ...props }: any) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  const codeString = String(children).replace(/\n$/, '');
+                  const inline = !className;
+                  
+                  if (match && match[1] === 'mermaid') {
+                    return (
+                      <div className="mermaid my-4">
+                        {codeString}
+                      </div>
+                    );
+                  }
+                  
+                  return !inline && match ? (
+                    <SyntaxHighlighter
+                      style={vscDarkPlus as any}
+                      language={match[1]}
+                      PreTag="div"
+                      className="rounded-lg my-4"
+                      {...props}
+                    >
+                      {codeString}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
               {slides[currentSlide]}
             </ReactMarkdown>
           </div>
@@ -111,6 +174,12 @@ export function SlideViewer({ markdown }: SlideViewerProps) {
             ))}
           </div>
           <div className="flex gap-2">
+            {onEdit && (
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -139,4 +208,5 @@ export function SlideViewer({ markdown }: SlideViewerProps) {
     </div>
   );
 }
+
 
