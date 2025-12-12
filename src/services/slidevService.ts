@@ -93,9 +93,78 @@ const PREMIUM_TEMPLATES = {
       { layout: "content", title: "Go-to-Market", slides: 1 },
       { layout: "quote", title: "Customer Testimonial", slides: 1 },
       { layout: "section", title: "Financial Projections", slides: 1 },
-      { layout: "end", title: "Thank You", slides: 1 }
-    ]
+      { layout: "end", title: "Thank You", slides: 1 },
+    ],
   },
+
+  business: {
+    structure: [
+      { layout: "cover", title: "Business Report", slides: 1 },
+      { layout: "section", title: "Executive Summary", slides: 1 },
+      { layout: "two-cols", title: "Key Metrics", slides: 1 },
+      { layout: "content", title: "Context & Assumptions", slides: 1 },
+      { layout: "two-cols", title: "Trends & Insights", slides: 1 },
+      { layout: "content", title: "Risks & Mitigations", slides: 1 },
+      { layout: "center", title: "Recommendations", slides: 1 },
+      { layout: "fact", title: "North Star Metric", slides: 1 },
+      { layout: "end", title: "Next Steps", slides: 1 },
+    ],
+  },
+
+  marketing: {
+    structure: [
+      { layout: "cover", title: "Campaign Overview", slides: 1 },
+      { layout: "section", title: "The Big Idea", slides: 1 },
+      { layout: "two-cols", title: "Audience & Persona", slides: 1 },
+      { layout: "image-right", title: "Messaging & Positioning", slides: 1 },
+      { layout: "two-cols", title: "Funnel & Journey", slides: 1 },
+      { layout: "content", title: "Channel Mix", slides: 1 },
+      { layout: "fact", title: "KPIs & Targets", slides: 1 },
+      { layout: "quote", title: "Social Proof", slides: 1 },
+      { layout: "end", title: "Launch Plan", slides: 1 },
+    ],
+  },
+
+  webinar: {
+    structure: [
+      { layout: "cover", title: "Webinar Title", slides: 1 },
+      { layout: "content", title: "Agenda & Outcomes", slides: 1 },
+      { layout: "section", title: "Section 1", slides: 1 },
+      { layout: "two-cols", title: "Concept + Demo", slides: 2 },
+      { layout: "center", title: "Interactive Moment", slides: 1 },
+      { layout: "section", title: "Section 2", slides: 1 },
+      { layout: "content", title: "Key Takeaways", slides: 1 },
+      { layout: "two-cols", title: "Q&A", slides: 1 },
+      { layout: "end", title: "Thank You", slides: 1 },
+    ],
+  },
+
+  educational: {
+    structure: [
+      { layout: "cover", title: "Lesson Title", slides: 1 },
+      { layout: "content", title: "Learning Objectives", slides: 1 },
+      { layout: "section", title: "Core Concept", slides: 1 },
+      { layout: "two-cols", title: "Explanation + Diagram", slides: 1 },
+      { layout: "center", title: "Worked Example", slides: 1 },
+      { layout: "content", title: "Common Misconceptions", slides: 1 },
+      { layout: "two-cols", title: "Practice", slides: 1 },
+      { layout: "end", title: "Summary", slides: 1 },
+    ],
+  },
+
+  personal: {
+    structure: [
+      { layout: "cover", title: "Story", slides: 1 },
+      { layout: "intro", title: "Why This Matters", slides: 1 },
+      { layout: "content", title: "The Journey", slides: 1 },
+      { layout: "two-cols", title: "Challenges & Learnings", slides: 1 },
+      { layout: "quote", title: "A Key Quote", slides: 1 },
+      { layout: "center", title: "What I’d Do Next", slides: 1 },
+      { layout: "end", title: "Thank You", slides: 1 },
+    ],
+  },
+
+  // Legacy/internal keys
   workshop: {
     structure: [
       { layout: "cover", title: "Workshop Introduction", slides: 1 },
@@ -107,8 +176,8 @@ const PREMIUM_TEMPLATES = {
       { layout: "image-right", title: "Case Study", slides: 1 },
       { layout: "content", title: "Best Practices", slides: 1 },
       { layout: "two-cols", title: "Q&A Session", slides: 1 },
-      { layout: "end", title: "Wrap Up", slides: 1 }
-    ]
+      { layout: "end", title: "Wrap Up", slides: 1 },
+    ],
   },
   academic: {
     structure: [
@@ -122,9 +191,9 @@ const PREMIUM_TEMPLATES = {
       { layout: "two-cols", title: "Findings & Discussion", slides: 1 },
       { layout: "content", title: "Conclusions", slides: 1 },
       { layout: "section", title: "Future Work", slides: 1 },
-      { layout: "end", title: "Thank You", slides: 1 }
-    ]
-  }
+      { layout: "end", title: "Thank You", slides: 1 },
+    ],
+  },
 };
 
 // Extract keywords and context from prompt
@@ -162,8 +231,18 @@ function extractAdvancedKeywords(prompt: string): {
 // Generate advanced slidev markdown with full features
 function buildUltraAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig): string {
   const { keywords, industry, tone, complexity } = extractAdvancedKeywords(userPrompt);
-  const template = PREMIUM_TEMPLATES[theme.purpose as keyof typeof PREMIUM_TEMPLATES] || PREMIUM_TEMPLATES.pitch;
-  const slideCount = Math.max(8, Math.min(template.structure.length, 15));
+
+  const templateKey = (PREMIUM_TEMPLATES as Record<string, unknown>)[theme.purpose]
+    ? (theme.purpose as keyof typeof PREMIUM_TEMPLATES)
+    : theme.purpose === 'workshop'
+      ? ('webinar' as keyof typeof PREMIUM_TEMPLATES)
+      : theme.purpose === 'academic'
+        ? ('educational' as keyof typeof PREMIUM_TEMPLATES)
+        : ('pitch' as keyof typeof PREMIUM_TEMPLATES);
+
+  const template = PREMIUM_TEMPLATES[templateKey] || PREMIUM_TEMPLATES.pitch;
+  const rawSlideCount = template.structure.reduce((sum, s) => sum + (s.slides || 1), 0);
+  const slideCount = Math.max(8, Math.min(rawSlideCount, 18));
   
   return `You are a PREMIUM slidev presentation expert (Gamma/Canva-level quality). You generate PRODUCTION-READY slidev markdown.
 
@@ -181,6 +260,18 @@ Accent Color: ${theme.palette.accent}
 Background: ${theme.palette.background}
 Design Style: ${theme.style}
 Purpose: ${theme.purpose}
+Image Source: ${theme.imageSource}
+
+CUSTOMIZATION RULES (MUST FOLLOW):
+- Palette: use the provided colors for emphasis (HTML spans) and for Mermaid themeVariables.
+- Design Style:
+  - minimal: clean, whitespace, minimal emojis, short bullet lists
+  - modern/creative: stronger visual hierarchy, tasteful gradients/accents, bolder diagrams
+  - corporate/business: KPI-driven, structured, fewer gimmicks
+  - dark: prefer dark-friendly backgrounds and high-contrast text
+- Image policy:
+  - If Image Source is "none": do NOT include background/image lines, and do NOT use markdown images.
+  - Otherwise: use IMAGE_PLACEHOLDER_KEYWORD for all images/backgrounds (never direct Unsplash URLs).
 
 ═══════════════════════════════════════════════════════════════════
 CRITICAL MARKDOWN FORMAT REQUIREMENTS:
@@ -197,7 +288,7 @@ Slide separator: --- (blank line above and below)
 Example format:
 ---
 layout: cover
-background: https://source.unsplash.com/1600x900/?business
+background: IMAGE_PLACEHOLDER_business
 ---
 # Title
 ## Subtitle
@@ -229,10 +320,11 @@ ANIMATIONS & INTERACTIONS (REQUIRED):
 const feature = "syntax highlighting with line numbers";
 \`\`\`
 
-🎬 Mermaid Diagrams:
+🎬 Mermaid Diagrams (NEAT, flowchart-first, napkin-like):
 \`\`\`mermaid
-graph LR
-    A[Start] --> B[Process] --> C[End]
+%%{init: {'theme':'base','flowchart':{'curve':'basis'},'themeVariables':{'primaryColor':'${theme.palette.primary}','primaryBorderColor':'${theme.palette.accent}','lineColor':'#64748b','fontFamily':'Inter, system-ui, sans-serif','fontSize':'18px'}}}%%
+flowchart LR
+  A[Market Need] --> B[Our Solution] --> C[Competitive Advantage]
 \`\`\`
 
 ═══════════════════════════════════════════════════════════════════
@@ -247,10 +339,10 @@ VISUAL ELEMENTS & STYLING:
 • Mermaid diagrams for flows and structures
 • Math equations: $E = mc^2$
 • Lists with v-click for progressive reveal
-• Images: ![alt](https://source.unsplash.com/1600x900/?KEYWORD)
+• Images: ![alt](IMAGE_PLACEHOLDER_KEYWORD)
 
 ═══════════════════════════════════════════════════════════════════
-SLIDE STRUCTURE (${slideCount} SLIDES):
+SLIDE STRUCTURE (${slideCount} SLIDES) — FOR PLANNING ONLY (DO NOT INCLUDE THIS OUTLINE IN OUTPUT):
 ═══════════════════════════════════════════════════════════════════
 
 ${template.structure.map((slide, idx) => 
@@ -272,10 +364,10 @@ MANDATORY FEATURES IN OUTPUT:
 - Progressive reveals for lists and key points
 
 ✅ Visual Elements (MUST INCLUDE):
-- At least 2 Mermaid diagrams (flowcharts, graphs)
+- At least 3 Mermaid diagrams (flowcharts, system maps, timelines)
 - At least 1 code block with syntax highlighting
 - At least 1 math equation if technical topic
-- Multiple background images from Unsplash
+- If Image Source is not "none": include multiple background images using IMAGE_PLACEHOLDER_KEYWORD
 - Strategic use of color from theme palette
 
 ✅ Content Quality:
@@ -307,7 +399,7 @@ OUTPUT RULES (CRITICAL):
 ⚠️ MUST START with frontmatter and content immediately
 ⚠️ EVERY slide must have --- separator before AND after
 ⚠️ First line must be: ---
-⚠️ NO explanations, NO comments, NO markdown code blocks
+⚠️ NO explanations, NO comments. Do not wrap the entire output in a single code-fenced block.
 ⚠️ Output ONLY valid slidev markdown
 ⚠️ Use v-click for animations (not other methods)
 ⚠️ Use mermaid for diagrams (not raw SVG)
@@ -316,7 +408,7 @@ OUTPUT RULES (CRITICAL):
 ABSOLUTE OUTPUT FORMAT:
 ---
 layout: cover
-background: https://source.unsplash.com/1600x900/?...
+background: IMAGE_PLACEHOLDER_keyword
 ---
 [slide content]
 
@@ -425,13 +517,17 @@ export async function generateSlidevPresentation(
 
 // Clean and validate slidev content
 function cleanAndValidateSlidevContent(content: string): string {
-  return content
-    // Remove any code fences that might have been added accidentally
-    .replace(/^```[\w]*\n?/gm, '')
-    .replace(/\n?```$/gm, '')
-    // Ensure proper slide separation
+  let cleaned = content.replace(/\r\n/g, '\n').trim();
+
+  // Sometimes the model wraps the entire response in a single fenced block (```...```).
+  // Strip only the outer wrapper while preserving legitimate internal fences (mermaid/code).
+  const wrapperMatch = cleaned.match(/^```(?:[\w-]+)?\s*\n([\s\S]*?)\n```\s*$/);
+  if (wrapperMatch) {
+    cleaned = wrapperMatch[1].trim();
+  }
+
+  return cleaned
     .replace(/\n{3,}/g, '\n\n')
-    // Trim whitespace
     .trim();
 }
 

@@ -30,13 +30,27 @@ const promptCache = new Map<string, string>();
 function calculateOptimalSlideCount(prompt: string, purpose: string): string {
   const wordCount = prompt.split(' ').length;
   const complexity = wordCount > 80 ? 'detailed' : wordCount > 40 ? 'moderate' : 'concise';
-  
-  if (purpose === 'pitch') return complexity === 'detailed' ? '12-16' : '10-14';
-  if (purpose === 'academic') return complexity === 'concise' ? '15-20' : '20-25';
-  if (purpose === 'workshop') return complexity === 'detailed' ? '25-30' : '20-25';
+  const normalized = purpose.toLowerCase();
+
+  if (['pitch', 'business', 'marketing'].includes(normalized)) {
+    return complexity === 'detailed' ? '12-16' : '10-14';
+  }
+
+  if (['academic', 'educational'].includes(normalized)) {
+    return complexity === 'concise' ? '15-20' : '20-25';
+  }
+
+  if (['workshop', 'webinar'].includes(normalized)) {
+    return complexity === 'detailed' ? '25-30' : '20-25';
+  }
+
+  if (normalized === 'personal') {
+    return complexity === 'detailed' ? '10-14' : '8-12';
+  }
+
   if (complexity === 'detailed') return '15-20';
   if (complexity === 'concise') return '8-12';
-  
+
   return '12-15';
 }
 
@@ -167,10 +181,12 @@ async function generateSlidesLegacy(
         throw new Error("Generated content too short");
       }
 
-      fullContent = fullContent
-        .replace(/^```.*\n/gm, '')
-        .replace(/\n```$/gm, '')
-        .trim();
+      fullContent = fullContent.replace(/\r\n/g, '\n').trim();
+
+      const wrapperMatch = fullContent.match(/^```(?:[\w-]+)?\s*\n([\s\S]*?)\n```\s*$/);
+      if (wrapperMatch) {
+        fullContent = wrapperMatch[1].trim();
+      }
 
       return fullContent;
 

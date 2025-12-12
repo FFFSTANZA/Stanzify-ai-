@@ -12,7 +12,7 @@ import {
   Presentation
 } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus, tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import mermaid from "mermaid";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -64,22 +64,26 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
   useEffect(() => {
     mermaid.initialize({ 
       startOnLoad: false,
-      theme: 'default',
+      theme: 'base',
       securityLevel: 'loose',
       fontFamily: 'Inter, system-ui, sans-serif',
+      flowchart: {
+        curve: 'basis',
+        padding: 12,
+      },
       themeVariables: {
-        primaryColor: '#3b82f6',
-        primaryTextColor: '#1e40af',
-        primaryBorderColor: '#60a5fa',
-        lineColor: '#6b7280',
-        secondaryColor: '#f3f4f6',
+        primaryColor: '#dbeafe',
+        primaryTextColor: '#0f172a',
+        primaryBorderColor: '#3b82f6',
+        lineColor: '#475569',
+        secondaryColor: '#f1f5f9',
         tertiaryColor: '#ffffff',
         background: '#ffffff',
         mainBkg: '#ffffff',
-        secondBkg: '#f9fafb',
-        tertiaryBkg: '#f3f4f6',
-        fontSize: '18px'
-      }
+        secondBkg: '#f8fafc',
+        tertiaryBkg: '#f1f5f9',
+        fontSize: '18px',
+      },
     });
   }, []);
 
@@ -160,72 +164,102 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
 
   function parseSlidevMarkdown(markdown: string): Slide[] {
     const slides: Slide[] = [];
-    const slideBlocks = markdown.split(/\n---\n/);
+    const lines = markdown.replace(/\r\n/g, "\n").split("\n");
 
-    slideBlocks.forEach((block) => {
-      if (!block.trim()) return;
+    let idx = 0;
 
-      const lines = block.split('\n');
+    while (idx < lines.length) {
+      while (idx < lines.length && !lines[idx].trim()) idx++;
+      if (idx >= lines.length) break;
+
       const frontmatter: Record<string, string> = {};
-      let contentStart = 0;
 
-      // Parse frontmatter
-      if (lines[0]?.trim() === '---') {
-        contentStart = 1;
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (line === '---') {
-            contentStart = i + 1;
+      // Slidev uses `---` as both slide separators and YAML frontmatter fences.
+      // We parse frontmatter only when we see an opening `---` followed fairly
+      // quickly by a closing `---` and at least one `key: value` line.
+      if (lines[idx].trim() === "---") {
+        let endIdx = -1;
+        let sawLikelyContent = false;
+
+        for (let j = idx + 1; j < Math.min(lines.length, idx + 40); j++) {
+          const t = lines[j].trim();
+          if (t === "---") {
+            endIdx = j;
             break;
           }
-          const colonIndex = line.indexOf(':');
-          if (colonIndex > 0) {
-            const key = line.substring(0, colonIndex).trim();
-            const value = line.substring(colonIndex + 1).trim();
-            frontmatter[key] = value;
+
+          if (!t) continue;
+
+          if (/^(#|```|::left::|::right::|!\[|>|\$\$|[-*+]\s|\d+\.\s)/.test(t)) {
+            sawLikelyContent = true;
+            break;
           }
+        }
+
+        if (endIdx !== -1 && !sawLikelyContent) {
+          const fmLines = lines.slice(idx + 1, endIdx);
+          const hasFrontmatter = fmLines.some((l) => /^[\w-]+\s*:\s*/.test(l.trim()));
+
+          if (hasFrontmatter) {
+            for (const rawLine of fmLines) {
+              const line = rawLine.trim();
+              const match = line.match(/^([\w-]+)\s*:\s*(.*)$/);
+              if (match) {
+                frontmatter[match[1]] = match[2].trim();
+              }
+            }
+            idx = endIdx + 1;
+          } else {
+            idx++;
+          }
+        } else {
+          idx++;
         }
       }
 
-      // Get content
-      let content = lines.slice(contentStart).join('\n').trim();
-      
-      // Remove speaker notes
-      content = content.replace(/:::notes[\s\S]*?:::/g, '').trim();
-      
-      // Check for two-column layout
-      const isTwoColumn = content.includes('::left::') && content.includes('::right::');
-      let leftContent = '';
-      let rightContent = '';
+      const contentLines: string[] = [];
+      while (idx < lines.length && lines[idx].trim() !== "---") {
+        contentLines.push(lines[idx]);
+        idx++;
+      }
+
+      let content = contentLines.join("\n").trim();
+      content = content.replace(/:::notes[\s\S]*?:::/g, "").trim();
+
+      // Skip empty separators
+      if (!content && Object.keys(frontmatter).length === 0) continue;
+
+      const isTwoColumn = content.includes("::left::") && content.includes("::right::");
+      let leftContent = "";
+      let rightContent = "";
 
       if (isTwoColumn) {
-        const parts = content.split('::right::');
+        const parts = content.split("::right::");
         if (parts.length >= 2) {
-          leftContent = parts[0].replace('::left::', '').trim();
+          leftContent = parts[0].replace("::left::", "").trim();
           rightContent = parts[1].trim();
         }
       }
 
       const slide: Slide = {
         frontmatter,
-        content: isTwoColumn ? '' : content,
-        layout: frontmatter.layout || 'default',
+        content: isTwoColumn ? "" : content,
+        layout: frontmatter.layout || "default",
         background: frontmatter.background,
         backgroundImage: frontmatter.backgroundImage,
         image: frontmatter.image,
         transition: frontmatter.transition,
         isTwoColumn,
         leftContent,
-        rightContent
+        rightContent,
       };
 
-      // Parse content into elements
       if (!isTwoColumn && content) {
         slide.parsedElements = parseContentElements(content);
       }
 
       slides.push(slide);
-    });
+    }
 
     return slides;
   }
@@ -261,6 +295,28 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
           elements.push({ type: 'code', language, content: codeContent });
         }
         i++;
+        continue;
+      }
+
+      // Mermaid blocks without fences (e.g. if code fences were stripped upstream)
+      if (
+        /^(%%\{init:|flowchart\b|graph\b|sequenceDiagram\b|classDiagram\b|stateDiagram\b|erDiagram\b|journey\b|gantt\b|pie\b|mindmap\b|timeline\b)/.test(line)
+      ) {
+        const mermaidLines: string[] = [lines[i].trimEnd()];
+        i++;
+
+        while (i < lines.length) {
+          const nextLine = lines[i];
+          const trimmed = nextLine.trim();
+
+          if (!trimmed) break;
+          if (trimmed.startsWith('```')) break;
+
+          mermaidLines.push(nextLine.trimEnd());
+          i++;
+        }
+
+        elements.push({ type: 'mermaid', content: mermaidLines.join('\n') });
         continue;
       }
 
@@ -341,12 +397,23 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       if (code.trim() && !element.querySelector('svg')) {
         try {
           const id = `mermaid-${currentSlide}-${index}-${Date.now()}`;
-          mermaid.render(id, code).then(({ svg }) => {
-            element.innerHTML = svg;
-          }).catch((error) => {
-            console.error('Mermaid rendering error:', error);
-            element.innerHTML = `<div class="p-4 bg-red-50 rounded-lg text-red-600 text-sm">Failed to render diagram</div>`;
-          });
+          mermaid
+            .render(id, code)
+            .then(({ svg }) => {
+              element.innerHTML = svg;
+
+              const svgEl = element.querySelector('svg') as SVGElement | null;
+              if (svgEl) {
+                svgEl.removeAttribute('width');
+                svgEl.removeAttribute('height');
+                svgEl.style.maxWidth = '100%';
+                svgEl.style.height = 'auto';
+              }
+            })
+            .catch((error) => {
+              console.error('Mermaid rendering error:', error);
+              element.innerHTML = `<div class="p-4 bg-red-50 rounded-lg text-red-600 text-sm">Failed to render diagram</div>`;
+            });
         } catch (error) {
           console.error('Mermaid element error:', error);
         }
@@ -656,6 +723,28 @@ function parseInlineContent(content: string): ContentElement[] {
       continue;
     }
 
+    // Mermaid blocks without fences (e.g. if code fences were stripped upstream)
+    if (
+      /^(%%\{init:|flowchart\b|graph\b|sequenceDiagram\b|classDiagram\b|stateDiagram\b|erDiagram\b|journey\b|gantt\b|pie\b|mindmap\b|timeline\b)/.test(line)
+    ) {
+      const mermaidLines: string[] = [lines[i].trimEnd()];
+      i++;
+
+      while (i < lines.length) {
+        const nextLine = lines[i];
+        const trimmed = nextLine.trim();
+
+        if (!trimmed) break;
+        if (trimmed.startsWith('```')) break;
+
+        mermaidLines.push(nextLine.trimEnd());
+        i++;
+      }
+
+      elements.push({ type: 'mermaid', content: mermaidLines.join('\n') });
+      continue;
+    }
+
     // Headings
     if (line.startsWith('#')) {
       const level = line.match(/^#+/)?.[0].length || 1;
@@ -726,14 +815,25 @@ interface RenderElementProps {
 
 function RenderElement({ element, textColor }: RenderElementProps) {
   switch (element.type) {
-    case 'heading':
-      const HeadingTag = `h${element.level}` as keyof JSX.IntrinsicElements;
-      const headingSizes = ['text-6xl md:text-7xl', 'text-4xl md:text-5xl', 'text-3xl md:text-4xl', 'text-2xl md:text-3xl', 'text-xl md:text-2xl', 'text-lg md:text-xl'];
+    case 'heading': {
+      const level = Math.min(6, Math.max(1, element.level ?? 1));
+      const headingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
+      const HeadingTag = headingTags[level - 1];
+      const headingSizes = [
+        'text-6xl md:text-7xl',
+        'text-4xl md:text-5xl',
+        'text-3xl md:text-4xl',
+        'text-2xl md:text-3xl',
+        'text-xl md:text-2xl',
+        'text-lg md:text-xl',
+      ];
+
       return (
-        <HeadingTag className={`font-bold mb-4 leading-tight ${headingSizes[element.level! - 1]} ${textColor}`}>
+        <HeadingTag className={`font-bold mb-4 leading-tight ${headingSizes[level - 1]} ${textColor}`}>
           {processInlineFormatting(element.content || '')}
         </HeadingTag>
       );
+    }
 
     case 'paragraph':
       return (
