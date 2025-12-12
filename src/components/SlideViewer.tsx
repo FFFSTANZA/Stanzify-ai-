@@ -9,11 +9,7 @@ import {
   Home, 
   Play, 
   Pause,
-  Settings,
-  FileText,
-  Image,
-  Presentation,
-  Maximize
+  Presentation
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -24,7 +20,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import mermaid from "mermaid";
 import "katex/dist/katex.min.css";
-import { exportSlidevPresentation, analyzeSlidevPresentation } from "@/services/slidevService";
+import { exportToPPTX } from "@/services/pptxService";
 import { toast } from "sonner";
 
 interface SlideViewerProps {
@@ -34,39 +30,30 @@ interface SlideViewerProps {
 }
 
 interface Slide {
+  frontmatter: Record<string, string>;
   content: string;
   layout: string;
   background?: string;
+  backgroundImage?: string;
   image?: string;
-  notes?: string;
-  clicks?: string[];
-}
-
-interface SlideStats {
-  slideCount: number;
-  layoutCount: number;
-  mermaidDiagrams: number;
-  codeBlocks: number;
-  images: number;
+  transition?: string;
+  leftContent?: string;
+  rightContent?: string;
+  isTwoColumn?: boolean;
 }
 
 export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Presentation" }: SlideViewerProps) {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isPresenter, setIsPresenter] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
-  const [presentationStats, setPresentationStats] = useState<SlideStats | null>(null);
-  const [qualityAnalysis, setQualityAnalysis] = useState<any>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const mermaidRef = useRef<HTMLDivElement>(null);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Mermaid with enhanced configuration
+  // Initialize Mermaid
   useEffect(() => {
     mermaid.initialize({ 
       startOnLoad: true,
@@ -88,25 +75,19 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
     });
   }, []);
 
-  // Parse slidev markdown with enhanced parsing
+  // Parse markdown into slides
   useEffect(() => {
-    const parsedSlides = parseAdvancedSlidevMarkdown(markdown);
+    const parsedSlides = parseSlidevMarkdown(markdown);
     setSlides(parsedSlides);
     setCurrentSlide(0);
-    
-    // Calculate presentation statistics
-    const stats = calculateSlideStats(markdown);
-    setPresentationStats(stats);
-    
-    // Analyze presentation quality
-    analyzePresentationQuality();
   }, [markdown]);
 
-  // Handle Mermaid diagram rendering
+  // Render Mermaid diagrams
   useEffect(() => {
-    if (mermaidRef.current && slides.length > 0) {
+    const timer = setTimeout(() => {
       renderMermaidDiagrams();
-    }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [currentSlide, slides]);
 
   // Auto-play functionality
@@ -121,7 +102,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
             return prev;
           }
         });
-      }, 5000); // 5 seconds per slide
+      }, 5000);
     } else {
       if (autoPlayRef.current) {
         clearInterval(autoPlayRef.current);
@@ -147,6 +128,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
         case "ArrowRight":
         case "l":
         case " ":
+          if (e.key === " ") e.preventDefault();
           handleNextSlide();
           break;
         case "Home":
@@ -157,32 +139,18 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
           break;
         case "Escape":
           setIsFullscreen(false);
-          setIsPresenter(false);
           break;
         case "f":
-        case "F11":
           setIsFullscreen(!isFullscreen);
-          break;
-        case "p":
-          setIsPresenter(!isPresenter);
-          break;
-        case "n":
-          setShowNotes(!showNotes);
-          break;
-        case "s":
-          setIsAutoPlay(!isAutoPlay);
-          break;
-        case "r":
-          analyzePresentationQuality();
           break;
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [isFullscreen, isPresenter, showNotes, isAutoPlay, slides.length]);
+  }, [isFullscreen, slides.length]);
 
-  function parseAdvancedSlidevMarkdown(markdown: string): Slide[] {
+  function parseSlidevMarkdown(markdown: string): Slide[] {
     const slides: Slide[] = [];
     const slideBlocks = markdown.split(/\n---\n/);
 
@@ -190,11 +158,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       if (!block.trim()) return;
 
       const lines = block.split('\n');
-      let layout = 'default';
-      let background = '';
-      let image = '';
-      let notes = '';
-      let clicks: string[] = [];
+      const frontmatter: Record<string, string> = {};
       let contentStart = 0;
 
       // Parse frontmatter
@@ -206,116 +170,67 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
             contentStart = i + 1;
             break;
           }
-          if (line.startsWith('layout:')) {
-            layout = line.replace('layout:', '').trim();
-          }
-          if (line.startsWith('background:')) {
-            background = line.replace('background:', '').trim();
-          }
-          if (line.startsWith('image:')) {
-            image = line.replace('image:', '').trim();
-          }
-          if (line.startsWith('backgroundImage:')) {
-            background = line.replace('backgroundImage:', '').trim();
+          const colonIndex = line.indexOf(':');
+          if (colonIndex > 0) {
+            const key = line.substring(0, colonIndex).trim();
+            const value = line.substring(colonIndex + 1).trim();
+            frontmatter[key] = value;
           }
         }
       }
 
-      // Parse content for clicks and special directives
-      const content = lines.slice(contentStart).join('\n').trim();
-      const processedContent = processSlidevDirectives(content, clicks);
+      // Get content
+      let content = lines.slice(contentStart).join('\n').trim();
       
-      // Handle speaker notes (if present)
-      if (content.includes(':::notes')) {
-        const notesMatch = content.match(/:::notes\s*([\s\S]*?):::/);
-        if (notesMatch) {
-          notes = notesMatch[1].trim();
+      // Remove ::notes:: blocks
+      content = content.replace(/:::notes[\s\S]*?:::/g, '').trim();
+      
+      // Check for two-column layout
+      const isTwoColumn = content.includes('::left::') && content.includes('::right::');
+      let leftContent = '';
+      let rightContent = '';
+
+      if (isTwoColumn) {
+        // Split by ::right::
+        const parts = content.split('::right::');
+        if (parts.length >= 2) {
+          // Get left content (remove ::left:: marker)
+          leftContent = parts[0].replace('::left::', '').trim();
+          rightContent = parts[1].trim();
         }
       }
 
-      // Handle two-column layouts
-      if (processedContent.includes('::right::')) {
-        const parts = processedContent.split('::right::');
-        const leftContent = parts[0].trim();
-        const rightContent = parts[1]?.trim() || '';
-        
-        slides.push({
-          content: `<div class="grid grid-cols-2 gap-12 h-full items-center">
-            <div class="prose prose-lg dark:prose-invert max-w-none">
-              ${processMarkdownContent(leftContent)}
-            </div>
-            <div class="prose prose-lg dark:prose-invert max-w-none">
-              ${processMarkdownContent(rightContent)}
-            </div>
-          </div>`,
-          layout,
-          background,
-          image,
-          notes,
-          clicks
-        });
-      } else {
-        slides.push({
-          content: `<div class="prose prose-lg dark:prose-invert max-w-none">
-            ${processMarkdownContent(processedContent)}
-          </div>`,
-          layout,
-          background,
-          image,
-          notes,
-          clicks
-        });
-      }
+      slides.push({
+        frontmatter,
+        content: isTwoColumn ? '' : content,
+        layout: frontmatter.layout || 'default',
+        background: frontmatter.background,
+        backgroundImage: frontmatter.backgroundImage,
+        image: frontmatter.image,
+        transition: frontmatter.transition,
+        isTwoColumn,
+        leftContent,
+        rightContent
+      });
     });
 
     return slides;
   }
 
-  function processSlidevDirectives(content: string, _clicks: string[]): string {
-    // Process v-click directives
-    let processed = content.replace(/v-click(?:-(\d+))?/g, (_match, num) => {
-      return `<span v-click${num ? `="${num}"` : ''}>`;
-    });
-    
-    // Process v-after directives
-    processed = processed.replace(/v-after(?:-(\d+))?/g, (_match, num) => {
-      return `<span v-after${num ? `="${num}"` : ''}>`;
-    });
-    
-    return processed;
-  }
-
-  function processMarkdownContent(content: string): string {
-    // Process special slidev syntax
-    return content
-      // Handle clickable elements
-      .replace(/v-click/g, 'data-v-click')
-      // Handle math equations
-      .replace(/\$\$([\s\S]*?)\$\$/g, '<div class="math-block">$$$1$$</div>')
-      .replace(/\$([^$\n]+)\$/g, '<span class="math-inline">$1</span>')
-      // Handle code blocks with language
-      .replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
-        return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
-      });
-  }
-
   function renderMermaidDiagrams() {
-    if (!mermaidRef.current) return;
+    if (!slideContainerRef.current) return;
     
-    const mermaidElements = mermaidRef.current.querySelectorAll('.mermaid-diagram');
+    const mermaidElements = slideContainerRef.current.querySelectorAll('.mermaid-code');
     mermaidElements.forEach((element, index) => {
       const code = element.textContent || '';
-      if (code.trim() && !element.innerHTML.includes('<svg')) {
+      if (code.trim() && !element.querySelector('svg')) {
         try {
-          const id = `mermaid-${Date.now()}-${index}`;
+          const id = `mermaid-${currentSlide}-${index}-${Date.now()}`;
           mermaid.render(id, code).then(({ svg }) => {
             element.innerHTML = svg;
           }).catch((error) => {
             console.error('Mermaid rendering error:', error);
-            element.innerHTML = `<div class="error-boundary p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p class="text-red-600 dark:text-red-400">Failed to render diagram</p>
-              <pre class="text-xs mt-2">${code}</pre>
-            </div>`;
+            element.innerHTML = `<div class="p-4 bg-red-50 rounded-lg text-red-600 text-sm">Failed to render diagram</div>`;
           });
         } catch (error) {
           console.error('Mermaid element error:', error);
@@ -323,43 +238,6 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       }
     });
   }
-
-  function calculateSlideStats(markdown: string): SlideStats {
-    const slides = markdown.split(/\n---\n/).filter(slide => slide.trim());
-    const layouts = new Set<string>();
-    const mermaidCount = (markdown.match(/```mermaid/g) || []).length;
-    const codeCount = (markdown.match(/```/g) || []).length / 2;
-    const imageCount = (markdown.match(/!\[.*?\]\(.*?\)/g) || []).length;
-
-    slides.forEach(slide => {
-      const layoutMatch = slide.match(/layout:\s*(\w+)/);
-      if (layoutMatch) {
-        layouts.add(layoutMatch[1]);
-      }
-    });
-
-    return {
-      slideCount: slides.length,
-      layoutCount: layouts.size,
-      mermaidDiagrams: mermaidCount,
-      codeBlocks: codeCount,
-      images: imageCount
-    };
-  }
-
-  const analyzePresentationQuality = async () => {
-    setIsAnalyzing(true);
-    try {
-      const analysis = await analyzeSlidevPresentation(markdown);
-      setQualityAnalysis(analysis);
-      toast.success(`Presentation analyzed: ${analysis.score}/100`);
-    } catch (error) {
-      console.error("Analysis failed:", error);
-      toast.error("Failed to analyze presentation");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
 
   const handlePrevSlide = () => {
     setCurrentSlide(prev => Math.max(0, prev - 1));
@@ -370,31 +248,13 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
   };
 
   const handleDownload = async () => {
-    try {
-      const blob = new Blob([markdown], { type: "text/markdown" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.md`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Slidev markdown downloaded!");
-    } catch (error) {
-      toast.error("Failed to download presentation");
-    }
-  };
-
-  const handleExport = async (format: 'pdf' | 'png' | 'html') => {
     setIsExporting(true);
     try {
-      const result = await exportSlidevPresentation(markdown, format);
-      if (result.success) {
-        toast.success(`Presentation exported to ${format.toUpperCase()}`);
-      } else {
-        toast.error(`Export failed: ${result.error}`);
-      }
+      await exportToPPTX(slides, title);
+      toast.success("Presentation exported as PPTX!");
     } catch (error) {
-      toast.error("Export failed");
+      console.error('Export error:', error);
+      toast.error("Failed to export presentation");
     } finally {
       setIsExporting(false);
     }
@@ -407,9 +267,11 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       <div className="flex items-center justify-center h-full">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">No slides to display</p>
-          <Button onClick={onNewPresentation} variant="outline">
-            Create New Presentation
-          </Button>
+          {onNewPresentation && (
+            <Button onClick={onNewPresentation} variant="outline">
+              Create New Presentation
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -423,422 +285,271 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
           : "h-full bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
       }`}
     >
-      {/* Enhanced Top Controls Bar */}
+      {/* Top Controls Bar */}
       <div className="border-b border-border/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Left: Presentation Info */}
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Presentation className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-lg">{title}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Slide {currentSlide + 1} of {slides.length} • {currentSlideData.layout}
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Presentation className="w-5 h-5 text-white" />
               </div>
-              
-              {/* Presentation Stats */}
-              {presentationStats && (
-                <div className="hidden lg:flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3 h-3" />
-                    {presentationStats.slideCount} slides
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Image className="w-3 h-3" />
-                    {presentationStats.layoutCount} layouts
-                  </span>
-                  {presentationStats.mermaidDiagrams > 0 && (
-                    <span className="flex items-center gap-1">
-                      <span className="w-3 h-3 bg-purple-500 rounded"></span>
-                      {presentationStats.mermaidDiagrams} diagrams
-                    </span>
-                  )}
-                </div>
-              )}
+              <div>
+                <h2 className="font-bold text-lg">{title}</h2>
+                <p className="text-sm text-muted-foreground">
+                  Slide {currentSlide + 1} of {slides.length}
+                </p>
+              </div>
             </div>
 
-            {/* Right: Control Buttons */}
             <div className="flex items-center gap-2">
-              {/* Analysis Button */}
               <Button
-                onClick={analyzePresentationQuality}
-                disabled={isAnalyzing}
+                onClick={() => setIsAutoPlay(!isAutoPlay)}
                 variant="ghost"
                 size="sm"
                 className="gap-2"
-                title="Analyze presentation quality (R)"
-              >
-                <Settings className={`w-4 h-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
-                <span className="hidden xl:inline">Analyze</span>
-              </Button>
-
-              {/* Export Buttons */}
-              <div className="hidden md:flex gap-1">
-                <Button
-                  onClick={() => handleExport('pdf')}
-                  disabled={isExporting}
-                  variant="ghost"
-                  size="sm"
-                  title="Export to PDF"
-                >
-                  PDF
-                </Button>
-                <Button
-                  onClick={() => handleExport('png')}
-                  disabled={isExporting}
-                  variant="ghost"
-                  size="sm"
-                  title="Export to PNG"
-                >
-                  PNG
-                </Button>
-              </div>
-
-              {/* View Controls */}
-              <Button
-                onClick={() => setIsPresenter(!isPresenter)}
-                variant={isPresenter ? "default" : "ghost"}
-                size="sm"
-                title="Presenter mode (P)"
-              >
-                <Maximize className="w-4 h-4" />
-              </Button>
-
-              <Button
-                onClick={() => setIsAutoPlay(!isAutoPlay)}
-                variant={isAutoPlay ? "default" : "ghost"}
-                size="sm"
-                title="Auto-play (S)"
               >
                 {isAutoPlay ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                <span className="hidden md:inline">{isAutoPlay ? 'Pause' : 'Play'}</span>
               </Button>
 
               <Button
                 onClick={handleDownload}
-                variant="outline"
+                disabled={isExporting}
+                variant="ghost"
                 size="sm"
-                title="Download markdown"
+                className="gap-2"
               >
                 <Download className="w-4 h-4" />
+                <span className="hidden md:inline">{isExporting ? 'Exporting...' : 'Download PPTX'}</span>
               </Button>
 
               <Button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                title="Fullscreen (F)"
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </Button>
 
-              <Button
-                onClick={onNewPresentation}
-                variant="outline"
-                size="sm"
-                title="New presentation"
-              >
-                <Home className="w-4 h-4" />
-              </Button>
+              {onNewPresentation && (
+                <Button
+                  onClick={onNewPresentation}
+                  variant="ghost"
+                  size="sm"
+                >
+                  <Home className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Slide Display Area */}
-      <div className="flex-1 flex items-center justify-center p-4 xl:p-8 overflow-hidden">
-        <div className="w-full max-w-7xl">
-          {/* Slide Container with Enhanced Styling */}
-          <div 
-            ref={slideContainerRef}
-            className={`relative w-full aspect-video bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-border/30 transition-all duration-500 ${
-              isPresenter ? 'aspect-[4/3]' : 'aspect-video'
-            }`}
-            style={{
-              backgroundImage: currentSlideData.background ? `url(${currentSlideData.background})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            {/* Background Overlay */}
-            {currentSlideData.background && (
-              <div className="absolute inset-0 bg-gradient-to-br from-white/95 via-white/90 to-white/95 dark:from-slate-900/95 dark:via-slate-900/90 dark:to-slate-900/95" />
-            )}
-
-            {/* Slide Content */}
-            <div 
-              ref={mermaidRef}
-              className="relative z-10 h-full p-8 xl:p-16 flex flex-col justify-center"
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex, rehypeRaw]}
-                components={{
-                  code({ node, inline, className, children, ...props }: any) {
-                    const match = /language-(\w+)/.exec(className || '');
-                    const codeString = String(children).replace(/\n$/, '');
-                    
-                    // Handle Mermaid diagrams with proper spacing and scaling
-                    if (match && match[1] === 'mermaid') {
-                      return (
-                        <div className="mermaid-diagram my-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg overflow-x-auto max-w-full">
-                          <div className="w-full min-w-max flex justify-center">
-                            {codeString}
-                          </div>
-                        </div>
-                      );
-                    }
-                    
-                    // Handle regular code blocks with syntax highlighting
-                    if (!inline && match) {
-                      return (
-                        <div className="my-6 rounded-xl overflow-hidden shadow-lg border border-border/20">
-                          <SyntaxHighlighter
-                            style={vscDarkPlus}
-                            language={match[1]}
-                            PreTag="div"
-                            customStyle={{
-                              fontSize: '13px',
-                              lineHeight: '1.5',
-                              margin: 0,
-                              padding: '16px'
-                            }}
-                            showLineNumbers={true}
-                            wrapLines={true}
-                            {...props}
-                          >
-                            {codeString}
-                          </SyntaxHighlighter>
-                        </div>
-                      );
-                    }
-                    
-                    // Inline code
-                    return (
-                      <code 
-                        className="bg-muted px-2 py-1 rounded text-sm font-mono" 
-                        {...props}
-                      >
-                        {children}
-                      </code>
-                    );
-                  },
-                  h1: ({ children }) => (
-                    <h1 className="text-4xl xl:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight">
-                      {children}
-                    </h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="text-3xl xl:text-4xl font-semibold mb-4 text-slate-800 dark:text-slate-200 leading-tight">
-                      {children}
-                    </h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="text-2xl xl:text-3xl font-medium mb-3 text-slate-700 dark:text-slate-300">
-                      {children}
-                    </h3>
-                  ),
-                  p: ({ children }) => (
-                    <p className="text-lg xl:text-xl leading-relaxed mb-4 text-slate-600 dark:text-slate-400">
-                      {children}
-                    </p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="space-y-3 mb-6">
-                      {children}
-                    </ul>
-                  ),
-                  li: ({ children }) => (
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-3 flex-shrink-0" />
-                      <span className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {children}
-                      </span>
-                    </li>
-                  ),
-                  blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-blue-500 pl-6 py-4 bg-blue-50 dark:bg-blue-900/20 rounded-r-xl italic text-xl">
-                      {children}
-                    </blockquote>
-                  ),
-                  img: ({ src, alt, ...props }: any) => (
-                    <img 
-                      src={src} 
-                      alt={alt || 'slide image'} 
-                      className="max-w-full h-auto rounded-xl shadow-lg my-6 object-cover"
-                      {...props}
-                    />
-                  ),
-                }}
-              >
-                {currentSlideData.content}
-              </ReactMarkdown>
-            </div>
-
-            {/* Slide Number Badge */}
-            <div className="absolute top-6 right-6 bg-black/20 dark:bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white font-semibold">
-              {currentSlide + 1} / {slides.length}
-            </div>
-          </div>
-
-          {/* Speaker Notes */}
-          {showNotes && currentSlideData.notes && (
-            <div className="mt-6 p-6 bg-slate-100 dark:bg-slate-800 rounded-xl border border-border/30">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Speaker Notes
-              </h3>
-              <div className="prose prose-sm dark:prose-invert">
-                {currentSlideData.notes}
-              </div>
-            </div>
-          )}
+      {/* Slide Display Area */}
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8 overflow-hidden">
+        <div 
+          ref={slideContainerRef}
+          className="w-full max-w-6xl aspect-[16/9] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden relative"
+          style={{
+            backgroundImage: currentSlideData.backgroundImage || currentSlideData.background 
+              ? `url(${currentSlideData.backgroundImage || currentSlideData.background})` 
+              : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <SlideContent slide={currentSlideData} />
         </div>
       </div>
 
-      {/* Enhanced Bottom Navigation Bar */}
-      <div className="border-t border-border/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm">
+      {/* Navigation Controls */}
+      <div className="border-t border-border/40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Previous Button */}
             <Button
               onClick={handlePrevSlide}
               disabled={currentSlide === 0}
               variant="outline"
-              size="lg"
-              className="gap-2 min-w-[140px]"
+              size="sm"
+              className="gap-2"
             >
               <ChevronLeft className="w-4 h-4" />
               Previous
             </Button>
 
-            {/* Enhanced Slide Dots Navigation */}
-            <div className="flex items-center gap-3 px-6 py-3 bg-muted/50 rounded-full">
-              {slides.map((_, index) => (
+            {/* Slide Indicators */}
+            <div className="flex gap-1.5 items-center">
+              {slides.map((_, idx) => (
                 <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === currentSlide
-                      ? "w-10 h-3 bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg"
-                      : "w-3 h-3 bg-muted-foreground/30 hover:bg-muted-foreground/60 hover:scale-110"
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`h-2 rounded-full transition-all ${
+                    idx === currentSlide 
+                      ? 'bg-blue-600 w-8' 
+                      : 'bg-slate-300 dark:bg-slate-600 w-2 hover:bg-slate-400'
                   }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                  title={`Slide ${index + 1}: ${slides[index].layout}`}
+                  aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
             </div>
 
-            {/* Next Button */}
             <Button
               onClick={handleNextSlide}
               disabled={currentSlide === slides.length - 1}
               variant="outline"
-              size="lg"
-              className="gap-2 min-w-[140px]"
+              size="sm"
+              className="gap-2"
             >
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          {/* Enhanced Keyboard Shortcuts */}
-          <div className="text-center mt-4">
-            <div className="inline-flex items-center gap-6 text-xs text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">←→</kbd>
-                <span>Navigate</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">F</kbd>
-                <span>Fullscreen</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">P</kbd>
-                <span>Presenter</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">S</kbd>
-                <span>Auto-play</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">R</kbd>
-                <span>Analyze</span>
-              </div>
-            </div>
+interface SlideContentProps {
+  slide: Slide;
+}
+
+function SlideContent({ slide }: SlideContentProps) {
+  // Determine layout class
+  const getLayoutClass = () => {
+    switch (slide.layout) {
+      case 'cover':
+      case 'intro':
+        return 'flex flex-col items-center justify-center text-center h-full p-16 bg-gradient-to-br from-blue-600/90 to-purple-600/90 text-white';
+      case 'section':
+        return 'flex flex-col items-center justify-center text-center h-full p-16 bg-gradient-to-r from-slate-800/90 to-slate-900/90 text-white';
+      case 'end':
+        return 'flex flex-col items-center justify-center text-center h-full p-16 bg-gradient-to-br from-purple-600/90 to-pink-600/90 text-white';
+      case 'center':
+      case 'fact':
+        return 'flex flex-col items-center justify-center text-center h-full p-16';
+      case 'quote':
+        return 'flex flex-col items-center justify-center text-center h-full p-16 italic';
+      case 'two-cols':
+      case 'image-right':
+      case 'image-left':
+        return 'h-full p-12';
+      default:
+        return 'flex flex-col justify-center h-full p-12';
+    }
+  };
+
+  const renderMarkdown = (content: string) => {
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
+        components={{
+          h1: ({ children }) => (
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">{children}</h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-4 leading-tight">{children}</h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="text-2xl md:text-3xl font-semibold mb-3">{children}</h3>
+          ),
+          p: ({ children }) => (
+            <p className="text-xl md:text-2xl mb-4 leading-relaxed">{children}</p>
+          ),
+          ul: ({ children }) => (
+            <ul className="space-y-3 text-xl md:text-2xl list-none">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="space-y-3 text-xl md:text-2xl list-decimal list-inside">{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li className="flex items-start gap-3">
+              <span className="text-blue-500 mt-1.5">▸</span>
+              <span className="flex-1">{children}</span>
+            </li>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-4 border-blue-500 pl-6 py-2 text-2xl italic text-slate-600 dark:text-slate-300">
+              {children}
+            </blockquote>
+          ),
+          code({ className, children }) {
+            const match = /language-(\w+)/.exec(className || '');
+            const language = match ? match[1] : '';
+            
+            // Check if it's a mermaid diagram
+            if (language === 'mermaid') {
+              return (
+                <div className="my-8 mermaid-code bg-white dark:bg-slate-800 p-6 rounded-lg">
+                  {String(children).replace(/\n$/, '')}
+                </div>
+              );
+            }
+            
+            // Regular code block
+            if (language) {
+              return (
+                <div className="my-6 rounded-lg overflow-hidden">
+                  <SyntaxHighlighter
+                    style={vscDarkPlus}
+                    language={language}
+                    PreTag="div"
+                    className="text-sm md:text-base"
+                  >
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
+                </div>
+              );
+            }
+            
+            // Inline code
+            return (
+              <code className="bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded text-sm font-mono">
+                {children}
+              </code>
+            );
+          },
+          img: ({ src, alt }) => (
+            <img 
+              src={src} 
+              alt={alt || ''} 
+              className="max-w-full h-auto rounded-lg shadow-lg my-6"
+            />
+          ),
+          strong: ({ children }) => (
+            <strong className="font-bold text-blue-600 dark:text-blue-400">{children}</strong>
+          ),
+          em: ({ children }) => (
+            <em className="italic text-purple-600 dark:text-purple-400">{children}</em>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
+  };
+
+  if (slide.isTwoColumn) {
+    return (
+      <div className={getLayoutClass()}>
+        <div className="grid grid-cols-2 gap-12 w-full h-full items-center">
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            {renderMarkdown(slide.leftContent || '')}
+          </div>
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            {renderMarkdown(slide.rightContent || '')}
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Quality Analysis Modal */}
-      {qualityAnalysis && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">Presentation Analysis</h3>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setQualityAnalysis(null)}
-              >
-                ✕
-              </Button>
-            </div>
-            
-            <div className="space-y-6">
-              {/* Overall Score */}
-              <div className="text-center">
-                <div className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {qualityAnalysis.score}
-                </div>
-                <div className="text-muted-foreground">Overall Quality Score</div>
-              </div>
-
-              {/* Statistics */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-muted/50 rounded-xl text-center">
-                  <div className="text-2xl font-bold">{qualityAnalysis.layoutDiversity}</div>
-                  <div className="text-sm text-muted-foreground">Layout Diversity</div>
-                </div>
-                <div className="p-4 bg-muted/50 rounded-xl text-center">
-                  <div className="text-2xl font-bold">{qualityAnalysis.visualImpact}</div>
-                  <div className="text-sm text-muted-foreground">Visual Impact</div>
-                </div>
-              </div>
-
-              {/* Strengths */}
-              <div>
-                <h4 className="font-semibold mb-3 text-green-600 dark:text-green-400">Strengths</h4>
-                <ul className="space-y-2">
-                  {qualityAnalysis.strengths?.map((strength: string, index: number) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-green-500 mt-1">✓</span>
-                      <span>{strength}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Suggestions */}
-              <div>
-                <h4 className="font-semibold mb-3 text-blue-600 dark:text-blue-400">Suggestions</h4>
-                <ul className="space-y-2">
-                  {qualityAnalysis.suggestions?.map((suggestion: string, index: number) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-blue-500 mt-1">💡</span>
-                      <span>{suggestion}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+  return (
+    <div className={getLayoutClass()}>
+      <div className="prose prose-lg dark:prose-invert max-w-none w-full">
+        {renderMarkdown(slide.content)}
+      </div>
     </div>
   );
 }
