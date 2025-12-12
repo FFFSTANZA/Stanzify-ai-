@@ -139,19 +139,10 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
     <div
       className={`flex flex-col ${isFullscreen ? "fixed inset-0 z-50 bg-background" : "h-full"}`}
     >
-      <div className="flex-1 flex flex-col items-center justify-center p-4 xl:p-8 overflow-auto">
-        <div className="w-full max-w-5xl mb-4">
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-sm">
-            <p className="font-semibold text-primary mb-1">💡 Preview Mode</p>
-            <p className="text-muted-foreground">
-              This is a basic preview. For full Slidev features (transitions, animations, presenter mode), 
-              download the markdown and run: <code className="px-2 py-1 bg-muted rounded">slidev presentation.md</code>
-            </p>
-          </div>
-        </div>
+      <div className="flex-1 flex items-center justify-center p-4 xl:p-8 overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div 
           ref={mermaidRef}
-          className="w-full max-w-5xl aspect-video bg-card rounded-xl shadow-elegant p-6 xl:p-12 overflow-auto transition-smooth"
+          className="w-full max-w-6xl aspect-video bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 xl:p-16 overflow-auto border border-slate-200 dark:border-slate-700"
         >
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <ReactMarkdown

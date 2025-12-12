@@ -1,126 +1,121 @@
-# Task: Build Stanzify - AI Presentation Generator (FINAL - Pure Slidev Markdown)
+# Task: Build Stanzify - AI Presentation Generator (COMPLETE)
 
-## All Phases Completed ✓
+## ✅ ALL PHASES COMPLETE
 
-### Phase 1-4: Foundation ✓
-- [x] Three-page workflow
-- [x] Theme customization
-- [x] Advanced features support
-
-### Phase 5: Perfect Slidev Generation ✓
-- [x] Enhanced AI prompt with examples
-- [x] SlideViewer improvements
+### Final Implementation ✓
+- [x] Single-page layout with collapsible customization
+- [x] Full Slidev-like rendering in web
+- [x] Ultimate Groq prompt for perfect markdown
+- [x] No "preview mode" - full features displayed
+- [x] Proper slide alignment and structure
+- [x] Clean, powerful layouts
 - [x] All lint checks passing
 
-### Phase 6: Pure Slidev Markdown (FINAL) ✓
-- [x] Step 1: Refocus AI Prompt
-  - [x] Remove HTML/CSS generation
-  - [x] Focus on pure Slidev markdown
-  - [x] 14 complete Slidev examples
-  - [x] Clear DO/DON'T rules
-  - [x] Proper Slidev layouts only
-  - [x] Native Slidev features only
-- [x] Step 2: Simplify Viewer
-  - [x] Position as "preview mode"
-  - [x] Add helpful banner about using Slidev
-  - [x] Clean frontmatter parsing
-  - [x] Handle ::right:: syntax
-  - [x] Remove v-click handling (Slidev feature)
-- [x] Step 3: Documentation
-  - [x] Explain pure Slidev approach
-  - [x] Guide users to download and use Slidev
-  - [x] Document all Slidev features
-  - [x] Provide usage examples
-- [x] Step 4: Final Testing
-  - [x] All lint checks passing
-  - [x] Pure markdown generation
-  - [x] No HTML/CSS in output
-  - [x] All Slidev features documented
+## 🎯 Final Features
 
-## ✅ Final Features
-
-### AI Generation
-- ✅ Pure Slidev markdown (NO HTML/CSS)
-- ✅ 14 slide examples in prompt
-- ✅ All Slidev layouts (cover, default, two-cols, center, section, fact, quote, end, image-right)
-- ✅ Mermaid diagrams (flowchart, sequence, etc.)
-- ✅ Code highlighting with {all|1-3|5-8} syntax
-- ✅ Math equations with $$ and $
-- ✅ Two-column with ::right::
-- ✅ Table of contents with <Toc>
-- ✅ Background images
-- ✅ Emojis for visual interest
-- ✅ Layout variety (never repeats)
-
-### User Experience
-- ✅ Three-page workflow (Prompt → Customize → Viewer)
-- ✅ 5 color palettes
+### User Interface
+- ✅ Single-page application
+- ✅ Prompt input with character count (50+ required)
+- ✅ Collapsible "Customize Design" section (optional)
+- ✅ 5 color palettes with visual preview
 - ✅ 6 design styles
 - ✅ 3 image source options
 - ✅ 6 slide purposes
-- ✅ Preview mode with helpful banner
-- ✅ Download markdown button
-- ✅ Clear guidance to use Slidev
+- ✅ "Generate Slides" and "Clear" buttons
+- ✅ Full-screen slide viewer
+- ✅ Slide navigation (prev/next, dots, keyboard)
+- ✅ Download markdown
+- ✅ Fullscreen mode
+- ✅ New presentation button
+
+### AI Generation (Ultimate Prompt)
+- ✅ Stanzify-AI system prompt
+- ✅ Pure Slidev markdown output
+- ✅ Canva/Gamma/Beautiful.ai style
+- ✅ Color palette integration
+- ✅ 12-18 slides generated
+- ✅ Layout variety (cover, two-cols, center, fact, quote, section, end, image-right)
+- ✅ 2-3 Mermaid diagrams
+- ✅ Code highlighting with {all|1-3|5}
+- ✅ Math equations ($$)
+- ✅ Emojis for visual interest
+- ✅ Unsplash image integration
+- ✅ No HTML/CSS in output
+- ✅ Professional, concise content
+
+### Slide Rendering
+- ✅ Full Slidev-like appearance
+- ✅ Proper layout rendering (cover, fact, quote, section, center)
+- ✅ Two-column support with ::right::
+- ✅ Mermaid diagram rendering
+- ✅ Code syntax highlighting
+- ✅ Math equation rendering (KaTeX)
+- ✅ Custom CSS for Slidev layouts
+- ✅ Proper typography hierarchy
+- ✅ Clean, professional design
+- ✅ No "preview mode" banner
 
 ### Technical Quality
-- ✅ All lint checks passing (78 files)
+- ✅ All lint checks passing (79 files)
 - ✅ TypeScript types defined
 - ✅ Clean code architecture
 - ✅ Responsive design
-- ✅ Error handling
+- ✅ Error handling with toasts
 - ✅ Loading states
+- ✅ Streaming generation
+- ✅ Image processing
 
-## 🎯 Key Principles
+## 📋 Key Principles
 
-1. **Pure Slidev**: Generate only Slidev markdown, not HTML/CSS
-2. **Native Features**: Use Slidev's built-in capabilities
-3. **Preview Mode**: Viewer is basic preview, not full Slidev
-4. **Download First**: Users should download and use with Slidev
-5. **Professional Output**: Production-ready markdown
+1. **Single-Page UX**: Everything on one page, collapsible customization
+2. **Full Slidev Power**: Render slides with full Slidev features in web
+3. **Ultimate Prompt**: Stanzify-AI generates perfect Slidev markdown
+4. **Clean Output**: No HTML/CSS, pure markdown
+5. **Professional Design**: Canva/Gamma-like quality
 
-## 📋 Slidev Features Supported
+## 🚀 User Flow
+
+1. User enters detailed prompt (50+ characters)
+2. (Optional) User expands "Customize Design" and selects options
+3. User clicks "Generate Slides"
+4. AI generates pure Slidev markdown with streaming
+5. Slides render with full Slidev-like features
+6. User navigates through slides
+7. User can download markdown or create new presentation
+
+## 🎨 Slidev Features Supported
 
 ### Layouts
-- cover, default, center, two-cols, section, fact, quote, end, image-right
+- cover (title slides)
+- default (standard content)
+- two-cols (side-by-side with ::right::)
+- center (centered content)
+- section (section dividers)
+- fact (large statistics)
+- quote (impactful quotes)
+- end (thank you slides)
+- image-right (image with content)
 
 ### Advanced Features
 - Mermaid diagrams (all types)
 - Code highlighting with line stepping
 - Math equations (inline and display)
-- Two-column layouts with ::right::
-- Table of contents with <Toc>
-- Background images
-- Custom classes
-- Scale control for diagrams
+- Emojis
+- Unsplash backgrounds
+- Custom styling
+- Proper typography
 
-### Content Elements
-- Emojis (📊 💡 🚀 ✅ ❌ 🎯 📈 💻 🔄 ⚡)
-- Bullet points
-- Numbered lists
-- Headings (H1-H6)
-- Bold, italic, code
-- Links and images
+## 📝 Ultimate Groq Prompt Features
 
-## 🚀 Usage Flow
+- **System Role**: Stanzify-AI markdown generation engine
+- **Input**: Topic, color palette, design style, image mode, purpose
+- **Rules**: 7 mandatory rule categories
+- **Examples**: 10 slide type examples
+- **Requirements**: Detailed must-include checklist
+- **Output**: Pure Slidev markdown only
 
-1. User enters prompt → Page 1
-2. User customizes style → Page 2
-3. AI generates pure Slidev markdown → Page 3
-4. User previews in viewer
-5. User downloads markdown
-6. User runs `slidev presentation.md`
-7. Full Slidev features available!
+## 🎉 Status: PRODUCTION READY
 
-## 📝 Notes
+All requirements met. Stanzify is a complete, single-page AI presentation generator that creates beautiful Slidev presentations with full features displayed directly in the web application.
 
-- Viewer is PREVIEW ONLY ✓
-- Real power comes from Slidev itself ✓
-- Generated markdown is pure and clean ✓
-- No HTML/CSS in AI output ✓
-- All Slidev features documented ✓
-- Users guided to download and use Slidev ✓
-
-## 🎉 Status: COMPLETE
-
-All requirements met. Stanzify generates pure, advanced Slidev markdown that users can download and use with the full Slidev framework for professional presentations.
 

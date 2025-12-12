@@ -1,6 +1,4 @@
-import PromptPage from './pages/PromptPage';
-import CustomizePage from './pages/CustomizePage';
-import ViewerPage from './pages/ViewerPage';
+import HomePage from './pages/HomePage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -12,19 +10,9 @@ interface RouteConfig {
 
 const routes: RouteConfig[] = [
   {
-    name: 'Prompt',
+    name: 'Home',
     path: '/',
-    element: <PromptPage />
-  },
-  {
-    name: 'Customize',
-    path: '/customize',
-    element: <CustomizePage />
-  },
-  {
-    name: 'Viewer',
-    path: '/viewer',
-    element: <ViewerPage />
+    element: <HomePage />
   }
 ];
 

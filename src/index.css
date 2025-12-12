@@ -154,4 +154,62 @@ All colors MUST be HSL.
   .prose code {
     @apply bg-muted px-2 py-1 rounded text-sm;
   }
+
+  /* Slidev-like slide rendering */
+  .slidev-slide {
+    @apply w-full h-full flex flex-col justify-center;
+  }
+
+  .slidev-layout-cover {
+    @apply text-center items-center justify-center;
+  }
+
+  .slidev-layout-center {
+    @apply items-center justify-center text-center;
+  }
+
+  .slidev-layout-fact {
+    @apply items-center justify-center text-center;
+  }
+
+  .slidev-layout-fact h1 {
+    @apply text-8xl font-bold text-primary mb-4;
+  }
+
+  .slidev-layout-fact h2 {
+    @apply text-3xl font-normal text-muted-foreground;
+  }
+
+  .slidev-layout-quote {
+    @apply items-center justify-center text-center px-16;
+  }
+
+  .slidev-layout-quote h1 {
+    @apply text-4xl font-medium italic mb-6;
+  }
+
+  .slidev-layout-quote h2 {
+    @apply text-xl text-muted-foreground font-normal;
+  }
+
+  .slidev-layout-section {
+    @apply items-center justify-center text-center;
+  }
+
+  .slidev-layout-section h1 {
+    @apply text-6xl font-bold mb-4;
+  }
+
+  .slidev-layout-section h2 {
+    @apply text-3xl font-normal text-muted-foreground;
+  }
+
+  /* Two-column grid for ::right:: syntax */
+  .prose .grid {
+    @apply gap-8;
+  }
+
+  .prose .grid > div {
+    @apply flex flex-col justify-center;
+  }
 }
