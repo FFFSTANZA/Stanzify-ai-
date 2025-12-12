@@ -26,6 +26,13 @@ export default function HomePage() {
   const characterCount = prompt.length;
   const isReady = characterCount >= 50;
 
+  const samplePrompts = [
+    "Create a 12-slide business presentation about our new SaaS product launch, targeting enterprise clients. Include market analysis, product features, pricing tiers, and implementation timeline.",
+    "Build an educational presentation about Climate Change for high school students. Cover causes, effects, solutions, and real-world examples with statistics and diagrams.",
+    "Design a pitch deck for a fintech startup that provides AI-powered investment advice. Include problem statement, solution, market size, business model, and competitive advantage.",
+    "Create a marketing presentation for a new electric vehicle model. Highlight sustainability, performance specs, charging infrastructure, and customer testimonials.",
+  ];
+
   const handleGenerate = async () => {
     if (!isReady) {
       toast.error("Please provide more details (at least 50 characters)");
@@ -137,6 +144,22 @@ export default function HomePage() {
                   Ready to generate
                 </span>
               )}
+            </div>
+            
+            {/* Sample Prompts */}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Or try these examples:</p>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
+                {samplePrompts.map((sample, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setPrompt(sample)}
+                    className="text-left text-sm p-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-smooth"
+                  >
+                    {sample.substring(0, 80)}...
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
