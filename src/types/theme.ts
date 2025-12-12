@@ -24,6 +24,7 @@ export interface PresentationConfig {
   designStyle: DesignStyle;
   imageSource: ImageSource;
   slidePurpose: SlidePurpose;
+  prompt?: string;
 }
 
 export const COLOR_PALETTES: ColorPalette[] = [

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
@@ -57,14 +57,13 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
   const [isPresenter, setIsPresenter] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
-  const [showStats, setShowStats] = useState(false);
   const [presentationStats, setPresentationStats] = useState<SlideStats | null>(null);
   const [qualityAnalysis, setQualityAnalysis] = useState<any>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const mermaidRef = useRef<HTMLDivElement>(null);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize Mermaid with enhanced configuration
@@ -187,7 +186,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
     const slides: Slide[] = [];
     const slideBlocks = markdown.split(/\n---\n/);
 
-    slideBlocks.forEach((block, index) => {
+    slideBlocks.forEach((block) => {
       if (!block.trim()) return;
 
       const lines = block.split('\n');
@@ -272,14 +271,14 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
     return slides;
   }
 
-  function processSlidevDirectives(content: string, clicks: string[]): string {
+  function processSlidevDirectives(content: string, _clicks: string[]): string {
     // Process v-click directives
-    let processed = content.replace(/v-click(?:-(\d+))?/g, (match, num) => {
+    let processed = content.replace(/v-click(?:-(\d+))?/g, (_match, num) => {
       return `<span v-click${num ? `="${num}"` : ''}>`;
     });
     
     // Process v-after directives
-    processed = processed.replace(/v-after(?:-(\d+))?/g, (match, num) => {
+    processed = processed.replace(/v-after(?:-(\d+))?/g, (_match, num) => {
       return `<span v-after${num ? `="${num}"` : ''}>`;
     });
     
@@ -295,7 +294,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       .replace(/\$\$([\s\S]*?)\$\$/g, '<div class="math-block">$$$1$$</div>')
       .replace(/\$([^$\n]+)\$/g, '<span class="math-inline">$1</span>')
       // Handle code blocks with language
-      .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
         return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
       });
   }
@@ -583,33 +582,38 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
                     const match = /language-(\w+)/.exec(className || '');
                     const codeString = String(children).replace(/\n$/, '');
                     
-                    // Handle Mermaid diagrams
+                    // Handle Mermaid diagrams with proper spacing and scaling
                     if (match && match[1] === 'mermaid') {
                       return (
-                        <div className="mermaid-diagram my-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
-                          <div className="w-full max-w-4xl">
+                        <div className="mermaid-diagram my-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg overflow-x-auto max-w-full">
+                          <div className="w-full min-w-max flex justify-center">
                             {codeString}
                           </div>
                         </div>
                       );
                     }
                     
-                    // Handle regular code blocks
+                    // Handle regular code blocks with syntax highlighting
                     if (!inline && match) {
                       return (
-                        <SyntaxHighlighter
-                          style={vscDarkPlus}
-                          language={match[1]}
-                          PreTag="div"
-                          className="rounded-xl my-6 shadow-lg border border-border/20"
-                          customStyle={{
-                            fontSize: '14px',
-                            lineHeight: '1.6'
-                          }}
-                          {...props}
-                        >
-                          {codeString}
-                        </SyntaxHighlighter>
+                        <div className="my-6 rounded-xl overflow-hidden shadow-lg border border-border/20">
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            customStyle={{
+                              fontSize: '13px',
+                              lineHeight: '1.5',
+                              margin: 0,
+                              padding: '16px'
+                            }}
+                            showLineNumbers={true}
+                            wrapLines={true}
+                            {...props}
+                          >
+                            {codeString}
+                          </SyntaxHighlighter>
+                        </div>
                       );
                     }
                     
@@ -660,6 +664,14 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
                     <blockquote className="border-l-4 border-blue-500 pl-6 py-4 bg-blue-50 dark:bg-blue-900/20 rounded-r-xl italic text-xl">
                       {children}
                     </blockquote>
+                  ),
+                  img: ({ src, alt, ...props }: any) => (
+                    <img 
+                      src={src} 
+                      alt={alt || 'slide image'} 
+                      className="max-w-full h-auto rounded-xl shadow-lg my-6 object-cover"
+                      {...props}
+                    />
                   ),
                 }}
               >

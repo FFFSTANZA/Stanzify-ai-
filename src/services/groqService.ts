@@ -58,7 +58,7 @@ function extractAdvancedKeywords(prompt: string): string[] {
   const wordsArray = prompt.toLowerCase().split(/\s+/);
   for (let i = 0; i < wordsArray.length - 1; i++) {
     const phrase = wordsArray.slice(i, i + 2).join(' ');
-    if (phrase.length > 6 && !phrase.includes(stopWords)) {
+    if (phrase.length > 6 && !Array.from(stopWords).some(w => phrase.includes(w))) {
       phrases.push(phrase);
     }
   }
