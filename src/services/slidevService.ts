@@ -218,7 +218,7 @@ CUSTOMIZATION RULES (MUST FOLLOW):
   - dark: prefer dark-friendly backgrounds and high-contrast text
 - Image policy:
   - If Image Source is "none": do NOT include background/image lines, and do NOT use markdown images.
-  - Otherwise: use IMAGE_PLACEHOLDER_KEYWORD for all images/backgrounds (never direct Unsplash URLs).
+  - Otherwise: use IMAGE_PLACEHOLDER_<keyword> for all images/backgrounds (never direct Unsplash URLs). Example: IMAGE_PLACEHOLDER_climate
 
 ═══════════════════════════════════════════════════════════════════
 CRITICAL MARKDOWN FORMAT REQUIREMENTS:
@@ -231,6 +231,14 @@ layout: [layout-name]
 [slide content here]
 
 Slide separator: --- (blank line above and below)
+
+COMPATIBILITY / CLEAN OUTPUT RULES (VERY IMPORTANT):
+- DO NOT output raw HTML lists/tables. Never use <ul>, <ol>, or <li>.
+- Use Markdown lists only:
+  - Unordered: - item
+  - Ordered: 1. item
+- Images MUST be Markdown format only: ![alt](IMAGE_PLACEHOLDER_keyword). Never use <img>.
+- Avoid HTML/CSS layout hacks; rely on layouts + Markdown + blank lines for spacing.
 
 Example format:
 ---
@@ -255,7 +263,8 @@ ANIMATIONS & INTERACTIONS (REQUIRED):
 
 🎬 Click Animations (v-click):
 - <div v-click>Content appears on click</div>
-- <li v-click>List item reveals</li>
+- Use v-click inside a Markdown list item:
+  - <span v-click>List item reveals</span>
 - Multiple clicks: v-click=3
 
 🎬 Transitions:
@@ -269,7 +278,7 @@ const feature = "syntax highlighting with line numbers";
 
 🎬 Mermaid Diagrams (NEAT, flowchart-first, napkin-like):
 \`\`\`mermaid
-%%{init: {'theme':'base','flowchart':{'curve':'basis'},'themeVariables':{'primaryColor':'${theme.palette.primary}','primaryBorderColor':'${theme.palette.accent}','lineColor':'#64748b','fontFamily':'Inter, system-ui, sans-serif','fontSize':'18px'}}}%%
+%%{init: {'theme':'base','flowchart':{'curve':'basis'},'themeVariables':{'primaryColor':'${theme.palette.primary}','primaryBorderColor':'${theme.palette.accent}','lineColor':'${theme.palette.secondary}','fontFamily':'Inter, system-ui, sans-serif','fontSize':'18px'}}}%%
 flowchart LR
   A[Market Need] --> B[Our Solution] --> C[Competitive Advantage]
 \`\`\`
@@ -286,7 +295,7 @@ VISUAL ELEMENTS & STYLING:
 • Mermaid diagrams for flows and structures
 • Math equations: $E = mc^2$
 • Lists with v-click for progressive reveal
-• Images: ![alt](IMAGE_PLACEHOLDER_KEYWORD)
+• Images: ![alt](IMAGE_PLACEHOLDER_<keyword>)
 
 ═══════════════════════════════════════════════════════════════════
 SLIDE STRUCTURE (${slideCount} SLIDES) — FOR PLANNING ONLY (DO NOT INCLUDE THIS OUTLINE IN OUTPUT):
@@ -451,6 +460,7 @@ MANDATORY:
 
       // Clean and validate slidev markdown
       fullContent = cleanAndValidateSlidevContent(fullContent);
+      validateGeneratedSlidevContent(fullContent, theme);
 
       // Success!
       return fullContent;
@@ -477,6 +487,45 @@ MANDATORY:
   );
 }
 
+function normalizeHtmlToMarkdown(content: string): string {
+  let out = content;
+
+  const stripNonSpanTags = (s: string) =>
+    s
+      .replace(/<br\s*\/?\s*>/gi, ' ')
+      .replace(/<(?!\/?span\b)[^>]+>/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const convertHtmlList = (block: string, ordered: boolean) => {
+    const items = Array.from(block.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi))
+      .map((m) => stripNonSpanTags(m[1]))
+      .filter(Boolean);
+
+    if (items.length === 0) return block;
+
+    return items
+      .map((item, idx) => (ordered ? `${idx + 1}. ${item}` : `- ${item}`))
+      .join('\n');
+  };
+
+  out = out.replace(/<ul\b[^>]*>[\s\S]*?<\/ul>/gi, (m) => convertHtmlList(m, false));
+  out = out.replace(/<ol\b[^>]*>[\s\S]*?<\/ol>/gi, (m) => convertHtmlList(m, true));
+
+  // Standalone <li> lines (common when models mix HTML + Markdown)
+  out = out.replace(/^\s*<li\b[^>]*>([\s\S]*?)<\/li>\s*$/gmi, (_m, inner) => `- ${stripNonSpanTags(inner)}`);
+
+  out = out.replace(/<img\b[^>]*>/gi, (tag) => {
+    const src = tag.match(/src\s*=\s*['"]([^'"]+)['"]/i)?.[1];
+    if (!src) return '';
+
+    const alt = tag.match(/alt\s*=\s*['"]([^'"]*)['"]/i)?.[1] ?? '';
+    return `![${alt}](${src})`;
+  });
+
+  return out;
+}
+
 // Clean and validate slidev content
 function cleanAndValidateSlidevContent(content: string): string {
   let cleaned = content.replace(/\r\n/g, '\n').trim();
@@ -488,9 +537,44 @@ function cleanAndValidateSlidevContent(content: string): string {
     cleaned = wrapperMatch[1].trim();
   }
 
+  cleaned = normalizeHtmlToMarkdown(cleaned);
+
   return cleaned
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+function validateGeneratedSlidevContent(content: string, theme: ThemeConfig): void {
+  const trimmed = content.trim();
+  if (!trimmed.startsWith('---')) {
+    throw new Error('Invalid slidev output: must start with frontmatter (---)');
+  }
+
+  const layoutCount = (trimmed.match(/^layout:\s*\S+/gm) ?? []).length;
+  if (layoutCount < 6) {
+    throw new Error('Invalid slidev output: missing slide layout frontmatter blocks');
+  }
+
+  const mermaidCount = (trimmed.match(/```mermaid/g) ?? []).length;
+  if (mermaidCount < 2) {
+    throw new Error('Invalid slidev output: missing Mermaid diagrams (need at least 2)');
+  }
+
+  const hasFlowchart = /```mermaid[\s\S]*?(?:flowchart\b|graph\b)/i.test(trimmed);
+  if (!hasFlowchart) {
+    throw new Error('Invalid slidev output: must include at least one Mermaid flowchart/graph');
+  }
+
+  if (theme.imageSource !== 'none') {
+    const placeholders = (trimmed.match(/IMAGE_PLACEHOLDER_/g) ?? []).length;
+    if (placeholders < 2) {
+      throw new Error('Invalid slidev output: missing image/background placeholders (IMAGE_PLACEHOLDER_...)');
+    }
+  }
+
+  if (/<(ul|ol|li)\b/i.test(trimmed)) {
+    throw new Error('Invalid slidev output: contains HTML lists (<ul>/<ol>/<li>). Use Markdown lists only.');
+  }
 }
 
 // Export presentation to different formats

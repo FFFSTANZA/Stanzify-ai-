@@ -81,10 +81,10 @@ export default function ViewerPage() {
         template: presentationConfig.slidePurpose || 'custom'
       });
 
-      setProgressMessage("Processing and optimizing images...");
-      
       let finalMarkdown = result;
-      if (presentationConfig.imageSource === 'unsplash') {
+      if (presentationConfig.imageSource !== 'none') {
+        setProgressMessage("Processing and optimizing images...");
+
         const markdownWithImages = await replaceImagePlaceholders(result, (status) => {
           setProgressMessage(status);
         });
@@ -283,6 +283,7 @@ export default function ViewerPage() {
           <SlideViewer 
             markdown={markdown} 
             title={config?.prompt?.slice(0, 50) + "..." || "Stanzify Presentation"}
+            palette={config?.palette}
           />
         ) : (
           <div className="flex items-center justify-center h-full">

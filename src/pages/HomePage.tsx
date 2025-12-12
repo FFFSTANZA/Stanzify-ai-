@@ -60,7 +60,7 @@ export default function HomePage() {
         },
       });
 
-      if (selectedImageSource === 'unsplash') {
+      if (selectedImageSource !== 'none') {
         toast.info("Processing images...");
         const withImages = await replaceImagePlaceholders(result);
         setMarkdown(withImages);
@@ -90,6 +90,7 @@ export default function HomePage() {
         ) : (
           <SlideViewer 
             markdown={markdown} 
+            palette={selectedPalette}
             onNewPresentation={() => {
               setMarkdown("");
               setPrompt("");
