@@ -6,7 +6,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { generateSlides } from "@/services/groqService";
 import { replaceImagePlaceholders } from "@/services/unsplashService";
 import { toast } from "sonner";
-import { Sparkles, RotateCcw, ChevronDown, ChevronUp, Palette, Image, Target, Wand2 } from "lucide-react";
+import { Sparkles, ChevronDown, ChevronUp, Palette, Image, Target, Wand2 } from "lucide-react";
 import { COLOR_PALETTES, DESIGN_STYLES, IMAGE_SOURCES, SLIDE_PURPOSES } from "@/types/theme";
 import type { ColorPalette, DesignStyle, ImageSource, SlidePurpose } from "@/types/theme";
 

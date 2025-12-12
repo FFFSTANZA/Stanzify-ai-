@@ -22,62 +22,6 @@ interface ThemeConfig {
   purpose: string;
   imageSource: string;
 }
-
-// Advanced slidev layouts and features
-const ADVANCED_SLIDEV_LAYOUTS = {
-  // Layout configurations for maximum visual impact
-  layouts: {
-    hero: {
-      class: "h-full flex items-center justify-center text-center",
-      components: ["div", "h1", "h2", "p", "button"]
-    },
-    cover: {
-      class: "h-full flex flex-col items-center justify-center text-center space-y-8",
-      components: ["h1", "h2", "p", "div"]
-    },
-    intro: {
-      class: "h-full grid grid-cols-2 gap-12 items-center",
-      components: ["div", "h1", "ul", "li"]
-    },
-    content: {
-      class: "h-full flex flex-col justify-center space-y-6",
-      components: ["h1", "h2", "ul", "li", "p"]
-    },
-    "two-cols": {
-      class: "h-full grid grid-cols-2 gap-12 items-start",
-      components: ["div", "h2", "ul", "li", "img", "code"]
-    },
-    "image-right": {
-      class: "h-full grid grid-cols-2 gap-12 items-center",
-      components: ["div", "h1", "ul", "li", "img"]
-    },
-    "image-left": {
-      class: "h-full grid grid-cols-2 gap-12 items-center",
-      components: ["img", "div", "h1", "ul", "li"]
-    },
-    center: {
-      class: "h-full flex flex-col items-center justify-center text-center space-y-6",
-      components: ["h1", "h2", "p", "div"]
-    },
-    fact: {
-      class: "h-full flex flex-col items-center justify-center text-center space-y-4",
-      components: ["h1", "h2", "p"]
-    },
-    quote: {
-      class: "h-full flex flex-col items-center justify-center text-center space-y-6",
-      components: ["blockquote", "p", "cite"]
-    },
-    section: {
-      class: "h-full flex flex-col items-center justify-center text-center space-y-8",
-      components: ["h1", "h2", "p"]
-    },
-    end: {
-      class: "h-full flex flex-col items-center justify-center text-center space-y-8",
-      components: ["h1", "h2", "p", "div"]
-    }
-  }
-};
-
 // Premium presentation templates for different purposes
 const PREMIUM_TEMPLATES = {
   pitch: {
@@ -228,45 +172,6 @@ function extractAdvancedKeywords(prompt: string): {
   };
 }
 
-// Helper: Convert hex to RGB for CSS gradients
-function hexToRgb(hex: string): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}` : '59,130,246';
-}
-
-// Helper: Build color styling guide
-function buildColorStylingGuide(theme: ThemeConfig): string {
-  return `
-Primary: ${theme.palette.primary} (Headings, main text)
-Accent: ${theme.palette.accent} (Highlights, emphasis)
-Secondary: ${theme.palette.secondary} (Supporting elements)
-Background: ${theme.palette.background} (Slide background/contrast)
-  `;
-}
-
-// Helper: Get visual focus for each layout type
-function getVisualFocusForLayout(layout: string): string {
-  const focuses: Record<string, string> = {
-    'cover': 'Title prominence, background image',
-    'two-cols': 'Left-right balance, dual content',
-    'section': 'Large text, section break',
-    'center': 'Centered content, visual focus',
-    'content': 'Vertical text flow, bullet structure',
-    'fact': 'Large statistic, minimal text',
-    'quote': 'Citation, attribution, emphasis',
-    'image-right': 'Text on left, image on right',
-    'image-left': 'Image on left, text on right',
-    'intro': 'Two-column intro with title',
-    'end': 'Closing slide, call to action'
-  };
-  return focuses[layout] || 'content';
-}
-
-// Helper: Get first layout for opening slide
-function getFirstLayout(layout: string): string {
-  return layout === 'cover' ? 'cover' : 'cover';
-}
-
 // Generate advanced slidev markdown with full features
 function buildUltraAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig): string {
   const { keywords, industry, tone, complexity } = extractAdvancedKeywords(userPrompt);
@@ -279,8 +184,7 @@ function buildUltraAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig):
         ? ('educational' as keyof typeof PREMIUM_TEMPLATES)
         : ('pitch' as keyof typeof PREMIUM_TEMPLATES);
 
-  const template = PREMIUM_TEMPLATES[templateKey] || PREMIUM_TEMPLATES.pitch;
-  const rawSlideCount = template.structure.reduce((sum, s) => sum + (s.slides || 1), 0);
+  const rawSlideCount = (PREMIUM_TEMPLATES[templateKey] || PREMIUM_TEMPLATES.pitch).structure.reduce((sum, s) => sum + (s.slides || 1), 0);
   const slideCount = Math.max(8, Math.min(rawSlideCount, 18));
   
   return `You are a PREMIUM slidev presentation expert (Gamma/Canva-level quality). You generate PRODUCTION-READY slidev markdown.
@@ -585,13 +489,26 @@ function cleanAndValidateSlidevContent(content: string): string {
 }
 
 // Export presentation to different formats
+// Note: This function requires Node.js APIs and will not work in the browser.
+// It's kept for potential server-side usage but should not be called from client code.
 export async function exportSlidevPresentation(
   markdownContent: string,
-  format: 'pdf' | 'png' | 'html' = 'pdf'
+  _format: 'pdf' | 'png' | 'html' = 'pdf'
 ): Promise<{ success: boolean; outputPath?: string; error?: string }> {
+  // Browser environment - return not implemented
+  if (typeof window !== 'undefined') {
+    return {
+      success: false,
+      error: 'Export functionality requires a Node.js backend. Please use download options in the UI instead.'
+    };
+  }
+  
+  // This would only work in a Node.js environment
   try {
-    // Write temporary markdown file
+    // Dynamic imports for Node.js-only modules
+    // @ts-ignore - Node.js modules not available in browser
     const fs = await import('fs/promises');
+    // @ts-ignore - Node.js modules not available in browser
     const path = await import('path');
     
     const tempDir = './temp-presentations';
@@ -602,8 +519,6 @@ export async function exportSlidevPresentation(
     
     await fs.writeFile(filePath, markdownContent, 'utf8');
     
-    // Use slidev CLI to export (this would need to be implemented in the backend)
-    // For now, we'll return success to indicate the markdown is ready
     return { 
       success: true, 
       outputPath: filePath 

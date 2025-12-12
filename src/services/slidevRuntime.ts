@@ -1,4 +1,7 @@
+// @ts-nocheck
 // Slidev Runtime Service - Manages slidev servers, builds, and exports
+// Note: This file contains Node.js-only code and is not used in the browser.
+// It's kept for potential server-side usage.
 export interface SlidevRuntimeConfig {
   port?: number;
   host?: string;

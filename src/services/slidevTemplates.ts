@@ -153,7 +153,7 @@ fonts:
   // Add custom slides if provided
   const slidesToUse = userContent?.customSlides || template.structure;
   
-  slidesToUse.forEach((slide, index) => {
+  slidesToUse.forEach((slide, _index) => {
     const backgroundStyle = slide.background 
       ? `\nbackground: ${getBackgroundStyle(slide.background, customization.colorScheme)}`
       : '';
@@ -183,7 +183,7 @@ class: ${getLayoutClass(slide.layout)}
 }
 
 // Helper functions
-function getBackgroundStyle(backgroundName: string, colorScheme: string): string {
+function getBackgroundStyle(backgroundName: string, _colorScheme: string): string {
   const backgrounds = {
     'corporate-gradient': 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
     'product-launch-gradient': 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
@@ -212,7 +212,7 @@ function getLayoutClass(layout: string): string {
 function addAnimations(content: string, animations: string[]): string {
   let animatedContent = content;
   
-  animations.forEach((animation, index) => {
+  animations.forEach((animation, _index) => {
     switch (animation) {
       case 'fade-in':
         animatedContent = animatedContent.replace(/(#{1,6}\s+.*)/g, `$1\n<v-after>\n`);
