@@ -21,196 +21,379 @@ interface ThemeConfig {
 }
 
 function buildAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig): string {
-  return `You are an expert Slidev presentation designer with deep knowledge of advanced presentation features. Generate a POWERFUL, professional, visually stunning presentation using FULL Slidev capabilities.
+  return `You are a MASTER Slidev presentation designer. Create a STUNNING, PROFESSIONAL presentation using FULL Slidev power.
 
 TOPIC: ${userPrompt}
 THEME: ${theme.palette.name}
 COLORS: Primary: ${theme.palette.primary}, Secondary: ${theme.palette.secondary}, Accent: ${theme.palette.accent}
-STYLE: ${theme.style} (${getStyleDescription(theme.style)})
+STYLE: ${theme.style}
 PURPOSE: ${theme.purpose}
 
-CRITICAL REQUIREMENTS - USE ADVANCED FEATURES:
+🎯 CRITICAL: Follow Slidev syntax EXACTLY as shown in examples below.
 
-1. **Slidev Frontmatter** (First slide MUST have):
-\`\`\`yaml
+═══════════════════════════════════════════════════════════════
+SLIDE 1: TITLE SLIDE (MANDATORY)
+═══════════════════════════════════════════════════════════════
 ---
-theme: default
-background: gradient
+layout: cover
+background: gradient-to-br from-blue-500 to-purple-600
+class: text-center text-white
+---
+
+# Your Compelling Title Here
+## Engaging Subtitle That Hooks The Audience
+
+<div class="pt-12">
+  <span class="px-4 py-2 rounded-full bg-white bg-opacity-20 text-sm">
+    ${theme.purpose.toUpperCase()} PRESENTATION
+  </span>
+</div>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 2: AGENDA/OVERVIEW
+═══════════════════════════════════════════════════════════════
+---
+layout: default
+---
+
+# 📋 Agenda
+
+<div class="grid grid-cols-2 gap-8 mt-8">
+
+<div v-click class="p-6 rounded-lg bg-blue-50 dark:bg-blue-900">
+  <h3 class="text-2xl mb-2">📊 Section 1</h3>
+  <p class="text-gray-600 dark:text-gray-300">Brief description</p>
+</div>
+
+<div v-click class="p-6 rounded-lg bg-green-50 dark:bg-green-900">
+  <h3 class="text-2xl mb-2">💡 Section 2</h3>
+  <p class="text-gray-600 dark:text-gray-300">Brief description</p>
+</div>
+
+<div v-click class="p-6 rounded-lg bg-purple-50 dark:bg-purple-900">
+  <h3 class="text-2xl mb-2">🚀 Section 3</h3>
+  <p class="text-gray-600 dark:text-gray-300">Brief description</p>
+</div>
+
+<div v-click class="p-6 rounded-lg bg-orange-50 dark:bg-orange-900">
+  <h3 class="text-2xl mb-2">🎯 Section 4</h3>
+  <p class="text-gray-600 dark:text-gray-300">Brief description</p>
+</div>
+
+</div>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 3: SECTION DIVIDER
+═══════════════════════════════════════════════════════════════
+---
+layout: section
 class: text-center
-highlighter: shiki
-lineNumbers: true
-drawings:
-  persist: false
-transition: slide-left
-title: [Your Title]
 ---
-\`\`\`
 
-2. **Advanced Layouts** - Use these Slidev layouts:
-   - \`layout: cover\` - For title slide with full background
-   - \`layout: center\` - For centered content
-   - \`layout: two-cols\` - For side-by-side comparisons
-   - \`layout: image-right\` - Image on right, content on left
-   - \`layout: quote\` - For impactful quotes
-   - \`layout: section\` - For section dividers
-   - \`layout: fact\` - For highlighting key statistics
+# 🚀 Section Title
+## Subtitle for this section
 
-Example:
-\`\`\`
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 4: TWO-COLUMN LAYOUT (USE THIS OFTEN!)
+═══════════════════════════════════════════════════════════════
 ---
 layout: two-cols
 ---
 
-# Left Column
-Content here
+# Left Side Title
+
+<v-clicks>
+
+- First key point with details
+- Second important point
+- Third critical insight
+- Fourth supporting fact
+
+</v-clicks>
 
 ::right::
 
-# Right Column
-Content here
+# Right Side Title
+
+<div class="mt-4">
+
+\`\`\`mermaid
+graph LR
+    A[Start] --> B[Process]
+    B --> C[Result]
+    C --> D[Success]
 \`\`\`
 
-3. **Transitions** - Add different transitions:
-   - \`transition: slide-left\`
-   - \`transition: slide-up\`
-   - \`transition: fade\`
-   - \`transition: zoom\`
+</div>
 
-4. **v-click Animations** - Progressive disclosure:
-\`\`\`
-- First point
-- Second point {.v-click}
-- Third point {.v-click}
-- Fourth point {.v-click}
-\`\`\`
+---
 
-5. **Code Blocks with Advanced Features**:
-\`\`\`typescript {all|1-3|5-8|10}
-// Line highlighting and stepping
-function example() {
-  const data = fetchData();
-  
-  return data.map(item => ({
-    id: item.id,
-    name: item.name
-  }));
-  
-  console.log('Done!');
+═══════════════════════════════════════════════════════════════
+SLIDE 5: CODE EXAMPLE (For technical content)
+═══════════════════════════════════════════════════════════════
+---
+layout: default
+---
+
+# 💻 Code Implementation
+
+\`\`\`typescript {all|1-3|5-8|10-12}
+// Advanced TypeScript example
+interface DataModel {
+  id: string;
+  name: string;
 }
+
+async function fetchData(): Promise<DataModel[]> {
+  const response = await fetch('/api/data');
+  return response.json();
+}
+
+// Usage
+const data = await fetchData();
+console.log(data);
 \`\`\`
 
-6. **Mermaid Diagrams** - Use extensively:
+<v-click>
+
+**Key Features:**
+- Type safety with TypeScript
+- Async/await for clean code
+- Error handling built-in
+
+</v-click>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 6: STATISTICS/FACT SLIDE
+═══════════════════════════════════════════════════════════════
+---
+layout: fact
+---
+
+# 📈 85%
+## Growth in market adoption over last year
+
+<div class="text-sm opacity-75 mt-8">
+Source: Industry Report 2024
+</div>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 7: PROCESS DIAGRAM
+═══════════════════════════════════════════════════════════════
+---
+layout: center
+---
+
+# 🔄 Our Process
+
 \`\`\`mermaid
 graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action 1]
-    B -->|No| D[Action 2]
-    C --> E[End]
-    D --> E
+    A[Discovery Phase] --> B{Analysis}
+    B -->|Data Found| C[Design Solution]
+    B -->|No Data| D[Research More]
+    D --> A
+    C --> E[Implementation]
+    E --> F[Testing]
+    F --> G{Quality Check}
+    G -->|Pass| H[Deploy]
+    G -->|Fail| E
+    H --> I[Monitor & Optimize]
 \`\`\`
 
-\`\`\`mermaid
-sequenceDiagram
-    participant User
-    participant System
-    User->>System: Request
-    System-->>User: Response
-\`\`\`
+---
 
-7. **Custom Styling with Classes**:
-   - \`{.text-gradient}\` - Gradient text
-   - \`{.text-shadow}\` - Text with shadow
-   - \`{.opacity-80}\` - Transparency
-   - \`{.text-3xl}\` - Large text
+═══════════════════════════════════════════════════════════════
+SLIDE 8: IMAGE WITH CONTENT
+═══════════════════════════════════════════════════════════════
+---
+layout: image-right
+image: IMAGE_PLACEHOLDER_business_team
+---
 
-8. **Images with Positioning**:
-\`\`\`
-![Image Description](IMAGE_PLACEHOLDER_keyword){.absolute.top-10.right-10.w-40.rounded-lg.shadow-xl}
-\`\`\`
+# Key Benefits
 
-9. **Math Equations** (if relevant):
-\`\`\`
-$E = mc^2$
+<v-clicks>
 
-$$
-\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-$$
-\`\`\`
+- ✅ **Benefit 1**: Detailed explanation of first major benefit
+- ✅ **Benefit 2**: How this helps your audience
+- ✅ **Benefit 3**: Measurable impact
+- ✅ **Benefit 4**: Long-term value
 
-10. **Speaker Notes**:
-\`\`\`
-<!--
-Key talking points:
-- Emphasize this
-- Don't forget to mention that
-- Time: 2 minutes
--->
-\`\`\`
+</v-clicks>
 
-11. **Custom CSS Classes**:
-\`\`\`
-<div class="grid grid-cols-3 gap-4">
-  <div class="bg-blue-500 p-4 rounded">Box 1</div>
-  <div class="bg-green-500 p-4 rounded">Box 2</div>
-  <div class="bg-red-500 p-4 rounded">Box 3</div>
+<div v-click class="mt-8 p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+💡 <strong>Pro Tip:</strong> Additional insight or recommendation
 </div>
-\`\`\`
 
-STRUCTURE REQUIREMENTS:
+---
 
-1. **Title Slide** (layout: cover):
-   - Engaging title
-   - Compelling subtitle
-   - Background gradient or image
+═══════════════════════════════════════════════════════════════
+SLIDE 9: COMPARISON TABLE
+═══════════════════════════════════════════════════════════════
+---
+layout: two-cols
+---
 
-2. **Agenda/Overview** (layout: default):
-   - Use v-click for each point
-   - 4-6 main topics
+# ❌ Before
 
-3. **Content Slides** (8-12 slides):
-   - Vary layouts (two-cols, center, image-right)
-   - Use v-click extensively
-   - Include 2-3 Mermaid diagrams
-   - Add code blocks if technical
-   - Use custom styling
-   - Max 5 points per slide
+<v-clicks>
 
-4. **Data/Statistics** (layout: fact):
-   - Highlight key numbers
-   - Use large text
-   - Visual emphasis
+- Problem point 1
+- Challenge 2
+- Issue 3
+- Pain point 4
 
-5. **Section Dividers** (layout: section):
-   - Between major topics
-   - Bold, centered text
+</v-clicks>
 
-6. **Conclusion** (layout: center):
-   - Key takeaways with v-click
-   - Call to action
+::right::
 
-7. **Thank You** (layout: end):
-   - Contact information
-   - Q&A prompt
+# ✅ After
 
-VISUAL ELEMENTS:
-- Identify 5-7 slides needing images
-- Format: ![alt](IMAGE_PLACEHOLDER_keyword)
-- Use emojis strategically (📊 📈 💡 🚀 ⚡ 🎯)
-- Add custom CSS classes for styling
-- Use gradients and shadows
+<v-clicks>
 
-CONTENT GUIDELINES:
-- Concise, impactful text
-- Strong action verbs
-- Data-driven insights
-- Progressive disclosure with v-click
-- Speaker notes for complex slides
-- Varied slide layouts (no repetition)
+- Solution 1
+- Improvement 2
+- Benefit 3
+- Success 4
 
+</v-clicks>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 10: QUOTE/TESTIMONIAL
+═══════════════════════════════════════════════════════════════
+---
+layout: quote
+---
+
+# "This is an impactful quote that reinforces your message"
+## — Attribution, Title/Company
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 11: MATH/FORMULA (If relevant)
+═══════════════════════════════════════════════════════════════
+---
+layout: center
+---
+
+# 📐 The Formula
+
+$$
+ROI = \\frac{(Gain - Cost)}{Cost} \\times 100\\%
+$$
+
+<v-click>
+
+**Example Calculation:**
+- Initial Investment: $10,000
+- Return: $15,000
+- ROI: 50%
+
+</v-click>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 12: CONCLUSION
+═══════════════════════════════════════════════════════════════
+---
+layout: center
+class: text-center
+---
+
+# 🎯 Key Takeaways
+
+<v-clicks>
+
+1. **First Major Point**: Brief summary
+2. **Second Major Point**: Key insight
+3. **Third Major Point**: Action item
+
+</v-clicks>
+
+<div v-click class="mt-12">
+
+## 🚀 Next Steps
+
+Take action today!
+
+</div>
+
+---
+
+═══════════════════════════════════════════════════════════════
+SLIDE 13: THANK YOU
+═══════════════════════════════════════════════════════════════
+---
+layout: end
+class: text-center
+---
+
+# Thank You! 🙏
+
+## Questions?
+
+<div class="mt-8 text-sm opacity-75">
+Contact: your@email.com | Website: yoursite.com
+</div>
+
+---
+
+═══════════════════════════════════════════════════════════════
+MANDATORY REQUIREMENTS:
+═══════════════════════════════════════════════════════════════
+
+1. **ALWAYS use layout:** on every slide (cover, default, two-cols, center, section, fact, quote, end, image-right)
+2. **ALWAYS use v-click or <v-clicks>** for progressive disclosure
+3. **ALWAYS use emojis** for visual interest (📊 💡 🚀 ✅ ❌ 🎯 📈 💻 🔄 ⚡)
+4. **ALWAYS use HTML/CSS** for styling (grid, flex, colors, spacing)
+5. **ALWAYS include 2-3 Mermaid diagrams** (flowchart, sequence, or graph)
+6. **ALWAYS use two-cols layout** for comparisons (with ::right::)
+7. **ALWAYS add images** with IMAGE_PLACEHOLDER_keyword format
+8. **ALWAYS use code blocks** if technical (with line highlighting {all|1-3|5-8})
+9. **ALWAYS use math** if relevant (with $$ for display, $ for inline)
+10. **ALWAYS vary layouts** - never repeat the same layout twice in a row
+
+═══════════════════════════════════════════════════════════════
+STRUCTURE FOR YOUR PRESENTATION:
+═══════════════════════════════════════════════════════════════
+
+Generate 10-15 slides following this pattern:
+1. Cover slide (layout: cover)
+2. Agenda (layout: default with grid)
+3. Section divider (layout: section)
+4. Content with two-cols (layout: two-cols)
+5. Process diagram (layout: center with mermaid)
+6. More content (vary layouts)
+7. Statistics (layout: fact)
+8. Code example if technical (layout: default)
+9. Benefits (layout: image-right)
+10. Comparison (layout: two-cols)
+11. Section divider (layout: section)
+12. More content (vary layouts)
+13. Conclusion (layout: center)
+14. Thank you (layout: end)
+
+═══════════════════════════════════════════════════════════════
 OUTPUT FORMAT:
-Generate ONLY valid Slidev markdown. Start with frontmatter. Use advanced features extensively. Make it POWERFUL and PROFESSIONAL.
+═══════════════════════════════════════════════════════════════
 
-Begin generating the presentation now:`;
+Generate ONLY valid Slidev markdown. Start with first slide. Use EXACT syntax from examples above. Make it POWERFUL and PROFESSIONAL.
+
+Begin generating NOW:`;
 }
 
 function getStyleDescription(style: string): string {

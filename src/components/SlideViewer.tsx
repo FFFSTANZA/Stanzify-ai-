@@ -36,28 +36,45 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
       .map((slide) => slide.trim())
       .filter((slide) => slide.length > 0)
       .map((slide) => {
-        // Remove Slidev frontmatter but keep the content
-        const lines = slide.split('\n');
-        const cleanedLines = lines.filter(line => {
-          // Remove layout, transition, class directives but keep content
-          return !line.startsWith('layout:') && 
-                 !line.startsWith('transition:') && 
-                 !line.startsWith('class:') &&
-                 !line.startsWith('theme:') &&
-                 !line.startsWith('background:') &&
-                 !line.startsWith('highlighter:') &&
-                 !line.startsWith('lineNumbers:') &&
-                 !line.startsWith('drawings:') &&
-                 !line.startsWith('title:') &&
-                 !line.startsWith('persist:');
-        });
-        return cleanedLines.join('\n').trim();
+        // Handle two-column layout with ::right::
+        if (slide.includes('::right::')) {
+          const [left, right] = slide.split('::right::');
+          const cleanLeft = cleanFrontmatter(left);
+          const cleanRight = cleanFrontmatter(right);
+          return `<div class="grid grid-cols-2 gap-8">\n<div>\n\n${cleanLeft}\n\n</div>\n<div>\n\n${cleanRight}\n\n</div>\n</div>`;
+        }
+        
+        // Remove v-click and v-clicks tags but keep content
+        let cleaned = slide.replace(/<v-clicks>/g, '').replace(/<\/v-clicks>/g, '');
+        cleaned = cleaned.replace(/v-click/g, '');
+        
+        return cleanFrontmatter(cleaned);
       })
       .filter((slide) => slide.length > 0);
     
     setSlides(slideArray);
     setCurrentSlide(0);
   }, [markdown]);
+
+  // Helper function to clean frontmatter
+  const cleanFrontmatter = (content: string): string => {
+    const lines = content.split('\n');
+    const cleanedLines = lines.filter(line => {
+      const trimmed = line.trim();
+      return !trimmed.startsWith('layout:') && 
+             !trimmed.startsWith('transition:') && 
+             !trimmed.startsWith('class:') &&
+             !trimmed.startsWith('theme:') &&
+             !trimmed.startsWith('background:') &&
+             !trimmed.startsWith('highlighter:') &&
+             !trimmed.startsWith('lineNumbers:') &&
+             !trimmed.startsWith('drawings:') &&
+             !trimmed.startsWith('title:') &&
+             !trimmed.startsWith('image:') &&
+             !trimmed.startsWith('persist:');
+    });
+    return cleanedLines.join('\n').trim();
+  };
 
   useEffect(() => {
     if (mermaidRef.current) {
