@@ -112,7 +112,7 @@ export class SlidevRuntimeService {
 
       // Start the process
       const { spawn } = await import('child_process');
-      const process = spawn(command.executable, command.args, {
+      const childProcess = spawn(command.executable, command.args, {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, FORCE_COLOR: '0' }
       });
@@ -120,7 +120,7 @@ export class SlidevRuntimeService {
       let serverReady = false;
       let startupError = '';
 
-      process.stdout?.on('data', (data) => {
+      childProcess.stdout?.on('data', (data) => {
         const output = data.toString();
         console.log(`[Slidev ${port}] ${output}`);
         
@@ -129,7 +129,7 @@ export class SlidevRuntimeService {
         }
       });
 
-      process.stderr?.on('data', (data) => {
+      childProcess.stderr?.on('data', (data) => {
         const error = data.toString();
         console.error(`[Slidev ${port}] Error: ${error}`);
         
@@ -138,7 +138,7 @@ export class SlidevRuntimeService {
         }
       });
 
-      process.on('close', (code) => {
+      childProcess.on('close', (code) => {
         console.log(`[Slidev ${port}] Process exited with code ${code}`);
         activeProcesses.delete(processId);
       });
@@ -160,7 +160,7 @@ export class SlidevRuntimeService {
       }
 
       if (!serverReady) {
-        process.kill();
+        childProcess.kill();
         return {
           success: false,
           error: 'Server failed to start within timeout period',
@@ -172,7 +172,7 @@ export class SlidevRuntimeService {
       
       // Store active process
       activeProcesses.set(processId, {
-        process,
+        process: childProcess,
         port,
         startTime: Date.now(),
         url

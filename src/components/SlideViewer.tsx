@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
@@ -57,14 +57,13 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
   const [isPresenter, setIsPresenter] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
-  const [showStats, setShowStats] = useState(false);
   const [presentationStats, setPresentationStats] = useState<SlideStats | null>(null);
   const [qualityAnalysis, setQualityAnalysis] = useState<any>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const mermaidRef = useRef<HTMLDivElement>(null);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize Mermaid with enhanced configuration
@@ -187,7 +186,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
     const slides: Slide[] = [];
     const slideBlocks = markdown.split(/\n---\n/);
 
-    slideBlocks.forEach((block, index) => {
+    slideBlocks.forEach((block) => {
       if (!block.trim()) return;
 
       const lines = block.split('\n');
@@ -272,14 +271,14 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
     return slides;
   }
 
-  function processSlidevDirectives(content: string, clicks: string[]): string {
+  function processSlidevDirectives(content: string, _clicks: string[]): string {
     // Process v-click directives
-    let processed = content.replace(/v-click(?:-(\d+))?/g, (match, num) => {
+    let processed = content.replace(/v-click(?:-(\d+))?/g, (_match, num) => {
       return `<span v-click${num ? `="${num}"` : ''}>`;
     });
     
     // Process v-after directives
-    processed = processed.replace(/v-after(?:-(\d+))?/g, (match, num) => {
+    processed = processed.replace(/v-after(?:-(\d+))?/g, (_match, num) => {
       return `<span v-after${num ? `="${num}"` : ''}>`;
     });
     
@@ -295,7 +294,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       .replace(/\$\$([\s\S]*?)\$\$/g, '<div class="math-block">$$$1$$</div>')
       .replace(/\$([^$\n]+)\$/g, '<span class="math-inline">$1</span>')
       // Handle code blocks with language
-      .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
         return `<pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre>`;
       });
   }
