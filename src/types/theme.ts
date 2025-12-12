@@ -14,22 +14,30 @@ export interface FontPairing {
   body: string;
 }
 
-export type StylePreference = 'minimal' | 'corporate' | 'creative' | 'academic';
+export type DesignStyle = 'minimal' | 'modern' | 'corporate' | 'dark' | 'creative' | 'academic';
+export type ImageSource = 'upload' | 'unsplash' | 'none';
+export type SlidePurpose = 'pitch' | 'educational' | 'business' | 'marketing' | 'webinar' | 'personal';
 
-export type BackgroundStyle = 'solid' | 'gradient' | 'image';
-
-export interface PresentationTheme {
+export interface PresentationConfig {
   palette: ColorPalette;
   fonts: FontPairing;
-  style: StylePreference;
-  backgroundStyle: BackgroundStyle;
-  backgroundImage?: string;
+  designStyle: DesignStyle;
+  imageSource: ImageSource;
+  slidePurpose: SlidePurpose;
 }
 
 export const COLOR_PALETTES: ColorPalette[] = [
   {
-    id: 'ocean',
-    name: 'Ocean Blue',
+    id: 'minimal',
+    name: 'Minimal White',
+    primary: '#1F2937',
+    secondary: '#111827',
+    accent: '#3B82F6',
+    background: '#FFFFFF',
+  },
+  {
+    id: 'blue',
+    name: 'Blue Tech',
     primary: '#3B82F6',
     secondary: '#1E40AF',
     accent: '#60A5FA',
@@ -58,14 +66,6 @@ export const COLOR_PALETTES: ColorPalette[] = [
     secondary: '#7C3AED',
     accent: '#A78BFA',
     background: '#FAF5FF',
-  },
-  {
-    id: 'monochrome',
-    name: 'Monochrome',
-    primary: '#1F2937',
-    secondary: '#111827',
-    accent: '#4B5563',
-    background: '#F9FAFB',
   },
 ];
 
@@ -96,25 +96,87 @@ export const FONT_PAIRINGS: FontPairing[] = [
   },
 ];
 
-export const STYLE_PREFERENCES: { value: StylePreference; label: string; description: string }[] = [
+export const DESIGN_STYLES: { value: DesignStyle; label: string; description: string }[] = [
   {
     value: 'minimal',
-    label: 'Minimal',
+    label: 'Minimal Professional',
     description: 'Clean and simple with lots of white space',
   },
   {
+    value: 'modern',
+    label: 'Modern Gradient',
+    description: 'Contemporary with gradient accents',
+  },
+  {
     value: 'corporate',
-    label: 'Corporate',
+    label: 'Corporate Sharp',
     description: 'Professional and business-focused',
   },
   {
+    value: 'dark',
+    label: 'Dark Mode',
+    description: 'Sleek dark theme for modern presentations',
+  },
+  {
     value: 'creative',
-    label: 'Creative',
+    label: 'Creative / Vibrant',
     description: 'Bold and visually striking',
   },
   {
     value: 'academic',
-    label: 'Academic',
+    label: 'Academic Clean',
     description: 'Structured and information-dense',
   },
 ];
+
+export const IMAGE_SOURCES: { value: ImageSource; label: string; description: string }[] = [
+  {
+    value: 'upload',
+    label: 'Upload my own images',
+    description: 'Use your own images for slides',
+  },
+  {
+    value: 'unsplash',
+    label: 'Autofetch from Unsplash',
+    description: 'Automatically find relevant images',
+  },
+  {
+    value: 'none',
+    label: 'No images (text-only)',
+    description: 'Focus on content without images',
+  },
+];
+
+export const SLIDE_PURPOSES: { value: SlidePurpose; label: string; description: string }[] = [
+  {
+    value: 'pitch',
+    label: 'Pitch Deck',
+    description: 'Investor presentations and startup pitches',
+  },
+  {
+    value: 'educational',
+    label: 'Educational Lesson',
+    description: 'Teaching and training materials',
+  },
+  {
+    value: 'business',
+    label: 'Business Report',
+    description: 'Corporate reports and analysis',
+  },
+  {
+    value: 'marketing',
+    label: 'Marketing Slides',
+    description: 'Product launches and campaigns',
+  },
+  {
+    value: 'webinar',
+    label: 'Webinar Slides',
+    description: 'Online presentations and workshops',
+  },
+  {
+    value: 'personal',
+    label: 'Personal / Creative',
+    description: 'Personal projects and creative work',
+  },
+];
+

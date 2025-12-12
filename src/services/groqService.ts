@@ -1,12 +1,25 @@
 import Groq from "groq-sdk";
-import type { PresentationTheme } from "@/types/theme";
 
 const groq = new Groq({
   apiKey: "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",
   dangerouslyAllowBrowser: true,
 });
 
-function buildEnhancedPrompt(userPrompt: string, theme: PresentationTheme): string {
+interface ThemeConfig {
+  palette: {
+    name: string;
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+  fonts: {
+    heading: string;
+    body: string;
+  };
+  style: string;
+}
+
+function buildEnhancedPrompt(userPrompt: string, theme: ThemeConfig): string {
   return `You are an expert Slidev presentation designer. Generate a professional, visually engaging presentation.
 
 TOPIC: ${userPrompt}
@@ -84,7 +97,9 @@ Begin generating the presentation now:`;
 function getStyleDescription(style: string): string {
   const descriptions: Record<string, string> = {
     minimal: 'Clean and simple with lots of white space',
+    modern: 'Contemporary with gradient accents',
     corporate: 'Professional and business-focused',
+    dark: 'Sleek dark theme for modern presentations',
     creative: 'Bold and visually striking',
     academic: 'Structured and information-dense',
   };
@@ -93,7 +108,7 @@ function getStyleDescription(style: string): string {
 
 export interface GenerateSlidesOptions {
   prompt: string;
-  theme: PresentationTheme;
+  theme: ThemeConfig;
   onProgress?: (chunk: string) => void;
 }
 
@@ -138,4 +153,5 @@ export async function generateSlides(
     );
   }
 }
+
 

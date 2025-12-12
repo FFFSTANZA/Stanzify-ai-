@@ -1,4 +1,5 @@
-import PresentationPage from './pages/PresentationPage';
+import CreatePage from './pages/CreatePage';
+import ViewerPage from './pages/ViewerPage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -10,9 +11,14 @@ interface RouteConfig {
 
 const routes: RouteConfig[] = [
   {
-    name: 'Stanzify',
+    name: 'Create',
     path: '/',
-    element: <PresentationPage />
+    element: <CreatePage />
+  },
+  {
+    name: 'Viewer',
+    path: '/viewer',
+    element: <ViewerPage />
   }
 ];
 
