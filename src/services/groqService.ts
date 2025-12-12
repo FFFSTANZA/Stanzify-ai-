@@ -116,7 +116,11 @@ export async function generateSlides(
     return result;
   } catch (error) {
     // Fallback to legacy method if slidevService fails
-    console.warn("slidevService failed, falling back to legacy generation:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("slidevService failed, falling back to legacy generation:", {
+      error: errorMessage,
+      prompt: prompt.substring(0, 100) + "..."
+    });
     return generateSlidesLegacy(options);
   }
 }
@@ -151,7 +155,7 @@ async function generateSlidesLegacy(
             content: systemPrompt,
           },
         ],
-        model: "mixtral-8x7b-32768",
+        model: "llama-3.3-70b-versatile",
         temperature: temperature,
         max_tokens: 12000,
         top_p: 0.95,
@@ -194,7 +198,11 @@ async function generateSlidesLegacy(
       lastError = error instanceof Error ? error : new Error("Unknown error");
       attempt++;
       
-      console.warn(`Legacy generation attempt ${attempt} failed:`, lastError.message);
+      console.error(`Legacy generation attempt ${attempt}/${maxRetries + 1} failed:`, {
+        message: lastError.message,
+        error: error,
+        prompt: prompt.substring(0, 100) + "..."
+      });
       
       if (attempt <= maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));

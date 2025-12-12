@@ -416,7 +416,7 @@ MANDATORY:
             content: systemPrompt,
           },
         ],
-        model: "mixtral-8x7b-32768", // Use Mixtral for better reasoning and longer outputs
+        model: "llama-3.3-70b-versatile", // High-capability model for premium content generation
         temperature: temperature,
         max_tokens: 16000, // More tokens for premium content with diagrams
         top_p: 0.95, // Higher creativity
@@ -458,7 +458,11 @@ MANDATORY:
       lastError = error instanceof Error ? error : new Error("Unknown error");
       attempt++;
       
-      console.warn(`Slidev generation attempt ${attempt} failed:`, lastError.message);
+      console.error(`Slidev generation attempt ${attempt}/${maxRetries + 1} failed:`, {
+        message: lastError.message,
+        error: error,
+        prompt: prompt.substring(0, 100) + "..."
+      });
       
       if (attempt <= maxRetries) {
         // Progressive backoff

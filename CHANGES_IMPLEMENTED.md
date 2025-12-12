@@ -89,10 +89,10 @@
   - Added "ANIMATIONS & INTERACTIVITY" requirements
   - Added helper functions for enhanced visual guidance
 
-- **Upgraded Groq Model**:
-  - From: `llama-3.3-70b-versatile`
-  - To: `mixtral-8x7b-32768`
-  - Reason: Better reasoning for complex layouts, 16K tokens (vs 12K)
+- **AI Model Configuration**:
+  - Current: `llama-3.3-70b-versatile` (high-capability model)
+  - Reason: Excellent reasoning for complex layouts, 16K tokens
+  - Note: Previously attempted `mixtral-8x7b-32768` but was decommissioned by Groq (Dec 2024)
 
 - **Enhanced System Prompt**:
   - More detailed role description

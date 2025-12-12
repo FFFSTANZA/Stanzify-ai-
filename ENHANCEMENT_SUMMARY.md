@@ -6,10 +6,11 @@ This enhancement transforms the Slidev presentation generator into a powerful, e
 ## Key Improvements
 
 ### 1. **Enhanced AI Model & Prompt Engineering**
-- **Model Upgrade**: Migrated from `llama-3.3-70b-versatile` to `mixtral-8x7b-32768`
-  - Better reasoning capabilities for complex layouts
-  - Support for 16K tokens (up from 12K) enabling richer content
+- **AI Model**: Using `llama-3.3-70b-versatile` (high-capability model)
+  - Excellent reasoning capabilities for complex layouts
+  - Support for 16K tokens enabling richer content
   - Improved handling of structured instructions
+  - Note: Previously used `mixtral-8x7b-32768` which was decommissioned by Groq in Dec 2024
 
 - **Advanced Prompt Engineering** (`buildUltraAdvancedSlidevPrompt`):
   - Comprehensive theme color application guidelines
