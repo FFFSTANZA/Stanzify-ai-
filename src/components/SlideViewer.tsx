@@ -18,11 +18,13 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import { exportToPPTX } from "@/services/pptxService";
 import { toast } from "sonner";
+import type { ColorPalette } from "@/types/theme";
 
 interface SlideViewerProps {
   markdown: string;
   onNewPresentation?: () => void;
   title?: string;
+  palette?: ColorPalette;
 }
 
 interface Slide {
@@ -50,7 +52,53 @@ interface ContentElement {
   alt?: string;
 }
 
-export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Presentation" }: SlideViewerProps) {
+const DEFAULT_PALETTE: ColorPalette = {
+  id: 'default',
+  name: 'Default',
+  primary: '#3B82F6',
+  secondary: '#8B5CF6',
+  accent: '#EC4899',
+  background: '#FFFFFF',
+};
+
+function parseHexColor(color: string): { r: number; g: number; b: number } | null {
+  const trimmed = color.trim();
+  const match = trimmed.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!match) return null;
+
+  const hex = match[1].length === 3
+    ? match[1].split('').map((c) => c + c).join('')
+    : match[1];
+
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+
+  if ([r, g, b].some((v) => Number.isNaN(v))) return null;
+  return { r, g, b };
+}
+
+function withAlpha(color: string, alpha: number): string {
+  const rgb = parseHexColor(color);
+  if (!rgb) return color;
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+function isDarkColor(color: string): boolean {
+  const rgb = parseHexColor(color);
+  if (!rgb) return false;
+  const srgb = [rgb.r, rgb.g, rgb.b].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  const [r, g, b] = srgb;
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance < 0.45;
+}
+
+export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Presentation", palette }: SlideViewerProps) {
+  const activePalette = palette ?? DEFAULT_PALETTE;
+
   const [slides, setSlides] = useState<Slide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -62,6 +110,8 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
 
   // Initialize Mermaid
   useEffect(() => {
+    const text = isDarkColor(activePalette.background) ? '#f8fafc' : '#0f172a';
+
     mermaid.initialize({ 
       startOnLoad: false,
       theme: 'base',
@@ -72,20 +122,20 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
         padding: 12,
       },
       themeVariables: {
-        primaryColor: '#dbeafe',
-        primaryTextColor: '#0f172a',
-        primaryBorderColor: '#3b82f6',
-        lineColor: '#475569',
-        secondaryColor: '#f1f5f9',
-        tertiaryColor: '#ffffff',
-        background: '#ffffff',
-        mainBkg: '#ffffff',
-        secondBkg: '#f8fafc',
-        tertiaryBkg: '#f1f5f9',
+        primaryColor: withAlpha(activePalette.primary, 0.18),
+        primaryTextColor: text,
+        primaryBorderColor: activePalette.accent,
+        lineColor: activePalette.secondary,
+        secondaryColor: withAlpha(activePalette.secondary, 0.12),
+        tertiaryColor: activePalette.background,
+        background: activePalette.background,
+        mainBkg: activePalette.background,
+        secondBkg: withAlpha(activePalette.primary, 0.04),
+        tertiaryBkg: withAlpha(activePalette.secondary, 0.06),
         fontSize: '18px',
       },
     });
-  }, []);
+  }, [activePalette.primary, activePalette.secondary, activePalette.accent, activePalette.background]);
 
   // Parse markdown into slides
   useEffect(() => {
@@ -190,7 +240,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
 
           if (!t) continue;
 
-          if (/^(#|```|::left::|::right::|!\[|>|\$\$|[-*+]\s|\d+\.\s)/.test(t)) {
+          if (/^(#|```|::left::|::right::|!\[|>|\$\$|[-*+•]\s|[–—]\s|\d+\.\s|<ul\b|<ol\b|<li\b|<img\b)/i.test(t)) {
             sawLikelyContent = true;
             break;
           }
@@ -320,6 +370,63 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
         continue;
       }
 
+      // HTML lists (<ul>/<ol>/<li>)
+      const htmlLower = line.toLowerCase();
+
+      if (htmlLower.startsWith('<ul') || htmlLower.startsWith('<ol')) {
+        const ordered = htmlLower.startsWith('<ol');
+        const closingTag = ordered ? '</ol>' : '</ul>';
+        const start = i;
+
+        const listLines: string[] = [];
+        while (i < lines.length) {
+          listLines.push(lines[i]);
+          if (lines[i].toLowerCase().includes(closingTag)) {
+            i++;
+            break;
+          }
+          i++;
+        }
+
+        const block = listLines.join('\n');
+        const items = Array.from(block.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi))
+          .map((m) => m[1].replace(/\n+/g, ' ').trim())
+          .filter(Boolean);
+
+        if (items.length) {
+          elements.push({ type: 'list', items, ordered });
+          continue;
+        }
+
+        i = start;
+      }
+
+      if (htmlLower.startsWith('<li')) {
+        const items: string[] = [];
+        while (i < lines.length && lines[i].trim().toLowerCase().startsWith('<li')) {
+          const li = lines[i].trim();
+          const match = li.match(/^<li\b[^>]*>([\s\S]*?)<\/li>\s*$/i);
+          items.push((match?.[1] ?? li).replace(/\n+/g, ' ').trim());
+          i++;
+        }
+
+        if (items.length) {
+          elements.push({ type: 'list', items, ordered: false });
+          continue;
+        }
+      }
+
+      // HTML image (<img ...>)
+      if (htmlLower.startsWith('<img')) {
+        const src = line.match(/src\s*=\s*['"]([^'"]+)['"]/i)?.[1];
+        const alt = line.match(/alt\s*=\s*['"]([^'"]*)['"]/i)?.[1];
+        if (src) {
+          elements.push({ type: 'image', src, alt });
+          i++;
+          continue;
+        }
+      }
+
       // Headings
       if (line.startsWith('#')) {
         const level = line.match(/^#+/)?.[0].length || 1;
@@ -330,14 +437,27 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
       }
 
       // Lists
-      if (line.match(/^[-*+]\s/) || line.match(/^\d+\.\s/)) {
-        const ordered = line.match(/^\d+\.\s/) !== null;
+      const unorderedListRegex = /^([-*+•]|[–—])\s+/;
+      const orderedListRegex = /^\d+\.\s+/;
+
+      if (unorderedListRegex.test(line) || orderedListRegex.test(line)) {
+        const ordered = orderedListRegex.test(line);
         const items: string[] = [];
-        while (i < lines.length && (lines[i].trim().match(/^[-*+]\s/) || lines[i].trim().match(/^\d+\.\s/))) {
-          const item = lines[i].trim().replace(/^[-*+]\s/, '').replace(/^\d+\.\s/, '');
-          items.push(item);
+
+        while (i < lines.length) {
+          const t = lines[i].trim();
+          if (ordered) {
+            if (!orderedListRegex.test(t)) break;
+            items.push(t.replace(orderedListRegex, '').trim());
+            i++;
+            continue;
+          }
+
+          if (!unorderedListRegex.test(t)) break;
+          items.push(t.replace(unorderedListRegex, '').trim());
           i++;
         }
+
         elements.push({ type: 'list', items, ordered });
         continue;
       }
@@ -472,7 +592,12 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${activePalette.primary} 0%, ${activePalette.accent} 100%)`,
+                }}
+              >
                 <Presentation className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -533,6 +658,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
           ref={slideContainerRef}
           className="w-full max-w-6xl aspect-[16/9] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-auto relative"
           style={{
+            backgroundColor: activePalette.background,
             backgroundImage: currentSlideData.backgroundImage || currentSlideData.background 
               ? `url(${currentSlideData.backgroundImage || currentSlideData.background})` 
               : undefined,
@@ -540,7 +666,7 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
             backgroundPosition: 'center',
           }}
         >
-          <SlideContent slide={currentSlideData} />
+          <SlideContent slide={currentSlideData} palette={activePalette} />
         </div>
       </div>
 
@@ -567,9 +693,10 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
                   onClick={() => setCurrentSlide(idx)}
                   className={`h-2 rounded-full transition-all flex-shrink-0 ${
                     idx === currentSlide 
-                      ? 'bg-blue-600 w-8' 
+                      ? 'w-8' 
                       : 'bg-slate-300 dark:bg-slate-600 w-2 hover:bg-slate-400'
                   }`}
+                  style={idx === currentSlide ? { backgroundColor: activePalette.accent } : undefined}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
@@ -594,51 +721,65 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
 
 interface SlideContentProps {
   slide: Slide;
+  palette: ColorPalette;
 }
 
-function SlideContent({ slide }: SlideContentProps) {
-  const getLayoutStyles = () => {
+function SlideContent({ slide, palette }: SlideContentProps) {
+  const getLayoutStyles = (): { container: string; text: string; containerStyle?: React.CSSProperties } => {
     const baseClasses = "h-full w-full";
-    
+    const isDarkBg = isDarkColor(palette.background);
+
     switch (slide.layout) {
       case 'cover':
       case 'intro':
         return {
-          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 lg:p-20 bg-gradient-to-br from-blue-600/95 to-purple-600/95`,
+          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 lg:p-20`,
+          containerStyle: {
+            backgroundImage: `linear-gradient(135deg, ${withAlpha(palette.primary, 0.92)} 0%, ${withAlpha(palette.accent, 0.92)} 100%)`,
+          } as React.CSSProperties,
           text: 'text-white'
         };
       case 'section':
         return {
-          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 lg:p-20 bg-gradient-to-r from-slate-800/95 to-slate-900/95`,
+          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 lg:p-20`,
+          containerStyle: {
+            backgroundImage: `linear-gradient(135deg, ${withAlpha(palette.secondary, 0.92)} 0%, ${withAlpha(palette.primary, 0.92)} 100%)`,
+          } as React.CSSProperties,
           text: 'text-white'
         };
       case 'end':
         return {
-          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 lg:p-20 bg-gradient-to-br from-purple-600/95 to-pink-600/95`,
+          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 lg:p-20`,
+          containerStyle: {
+            backgroundImage: `linear-gradient(135deg, ${withAlpha(palette.accent, 0.92)} 0%, ${withAlpha(palette.secondary, 0.92)} 100%)`,
+          } as React.CSSProperties,
           text: 'text-white'
         };
       case 'center':
       case 'fact':
         return {
           container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16`,
-          text: 'text-slate-900 dark:text-white'
+          text: isDarkBg ? 'text-white' : 'text-slate-900'
         };
       case 'quote':
         return {
-          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16 bg-gradient-to-br from-slate-100/95 to-slate-200/95`,
-          text: 'text-slate-800 italic'
+          container: `${baseClasses} flex flex-col items-center justify-center text-center p-12 md:p-16`,
+          containerStyle: {
+            backgroundColor: withAlpha(palette.secondary, 0.08),
+          } as React.CSSProperties,
+          text: isDarkBg ? 'text-white italic' : 'text-slate-800 italic'
         };
       case 'two-cols':
       case 'image-right':
       case 'image-left':
         return {
           container: `${baseClasses} p-8 md:p-12`,
-          text: 'text-slate-900 dark:text-white'
+          text: isDarkBg ? 'text-white' : 'text-slate-900'
         };
       default:
         return {
           container: `${baseClasses} flex flex-col justify-center p-8 md:p-12 lg:p-16`,
-          text: 'text-slate-900 dark:text-white'
+          text: isDarkBg ? 'text-white' : 'text-slate-900'
         };
     }
   };
@@ -647,13 +788,13 @@ function SlideContent({ slide }: SlideContentProps) {
 
   if (slide.isTwoColumn) {
     return (
-      <div className={styles.container}>
+      <div className={styles.container} style={styles.containerStyle}>
         <div className="grid grid-cols-2 gap-8 md:gap-12 w-full h-full items-center">
           <div className={styles.text}>
-            <RenderContent content={slide.leftContent || ''} textColor={styles.text} />
+            <RenderContent content={slide.leftContent || ''} textColor={styles.text} palette={palette} />
           </div>
           <div className={styles.text}>
-            <RenderContent content={slide.rightContent || ''} textColor={styles.text} />
+            <RenderContent content={slide.rightContent || ''} textColor={styles.text} palette={palette} />
           </div>
         </div>
       </div>
@@ -661,12 +802,12 @@ function SlideContent({ slide }: SlideContentProps) {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={styles.containerStyle}>
       <div className={`${styles.text} w-full`}>
         {slide.parsedElements ? (
-          <RenderParsedElements elements={slide.parsedElements} textColor={styles.text} />
+          <RenderParsedElements elements={slide.parsedElements} textColor={styles.text} palette={palette} />
         ) : (
-          <RenderContent content={slide.content} textColor={styles.text} />
+          <RenderContent content={slide.content} textColor={styles.text} palette={palette} />
         )}
       </div>
     </div>
@@ -676,15 +817,16 @@ function SlideContent({ slide }: SlideContentProps) {
 interface RenderContentProps {
   content: string;
   textColor: string;
+  palette: ColorPalette;
 }
 
-function RenderContent({ content, textColor }: RenderContentProps) {
+function RenderContent({ content, textColor, palette }: RenderContentProps) {
   const elements = parseInlineContent(content);
   
   return (
     <div className="space-y-6">
       {elements.map((element, idx) => (
-        <RenderElement key={idx} element={element} textColor={textColor} />
+        <RenderElement key={idx} element={element} textColor={textColor} palette={palette} />
       ))}
     </div>
   );
@@ -745,6 +887,63 @@ function parseInlineContent(content: string): ContentElement[] {
       continue;
     }
 
+    // HTML lists (<ul>/<ol>/<li>)
+    const htmlLower = line.toLowerCase();
+
+    if (htmlLower.startsWith('<ul') || htmlLower.startsWith('<ol')) {
+      const ordered = htmlLower.startsWith('<ol');
+      const closingTag = ordered ? '</ol>' : '</ul>';
+      const start = i;
+
+      const listLines: string[] = [];
+      while (i < lines.length) {
+        listLines.push(lines[i]);
+        if (lines[i].toLowerCase().includes(closingTag)) {
+          i++;
+          break;
+        }
+        i++;
+      }
+
+      const block = listLines.join('\n');
+      const items = Array.from(block.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi))
+        .map((m) => m[1].replace(/\n+/g, ' ').trim())
+        .filter(Boolean);
+
+      if (items.length) {
+        elements.push({ type: 'list', items, ordered });
+        continue;
+      }
+
+      i = start;
+    }
+
+    if (htmlLower.startsWith('<li')) {
+      const items: string[] = [];
+      while (i < lines.length && lines[i].trim().toLowerCase().startsWith('<li')) {
+        const li = lines[i].trim();
+        const match = li.match(/^<li\b[^>]*>([\s\S]*?)<\/li>\s*$/i);
+        items.push((match?.[1] ?? li).replace(/\n+/g, ' ').trim());
+        i++;
+      }
+
+      if (items.length) {
+        elements.push({ type: 'list', items, ordered: false });
+        continue;
+      }
+    }
+
+    // HTML image (<img ...>)
+    if (htmlLower.startsWith('<img')) {
+      const src = line.match(/src\s*=\s*['"]([^'"]+)['"]/i)?.[1];
+      const alt = line.match(/alt\s*=\s*['"]([^'"]*)['"]/i)?.[1];
+      if (src) {
+        elements.push({ type: 'image', src, alt });
+        i++;
+        continue;
+      }
+    }
+
     // Headings
     if (line.startsWith('#')) {
       const level = line.match(/^#+/)?.[0].length || 1;
@@ -755,14 +954,27 @@ function parseInlineContent(content: string): ContentElement[] {
     }
 
     // Lists
-    if (line.match(/^[-*+]\s/) || line.match(/^\d+\.\s/)) {
-      const ordered = line.match(/^\d+\.\s/) !== null;
+    const unorderedListRegex = /^([-*+•]|[–—])\s+/;
+    const orderedListRegex = /^\d+\.\s+/;
+
+    if (unorderedListRegex.test(line) || orderedListRegex.test(line)) {
+      const ordered = orderedListRegex.test(line);
       const items: string[] = [];
-      while (i < lines.length && (lines[i].trim().match(/^[-*+]\s/) || lines[i].trim().match(/^\d+\.\s/))) {
-        const item = lines[i].trim().replace(/^[-*+]\s/, '').replace(/^\d+\.\s/, '');
-        items.push(item);
+
+      while (i < lines.length) {
+        const t = lines[i].trim();
+        if (ordered) {
+          if (!orderedListRegex.test(t)) break;
+          items.push(t.replace(orderedListRegex, '').trim());
+          i++;
+          continue;
+        }
+
+        if (!unorderedListRegex.test(t)) break;
+        items.push(t.replace(unorderedListRegex, '').trim());
         i++;
       }
+
       elements.push({ type: 'list', items, ordered });
       continue;
     }
@@ -796,13 +1008,14 @@ function parseInlineContent(content: string): ContentElement[] {
 interface RenderParsedElementsProps {
   elements: ContentElement[];
   textColor: string;
+  palette: ColorPalette;
 }
 
-function RenderParsedElements({ elements, textColor }: RenderParsedElementsProps) {
+function RenderParsedElements({ elements, textColor, palette }: RenderParsedElementsProps) {
   return (
     <div className="space-y-6">
       {elements.map((element, idx) => (
-        <RenderElement key={idx} element={element} textColor={textColor} />
+        <RenderElement key={idx} element={element} textColor={textColor} palette={palette} />
       ))}
     </div>
   );
@@ -811,9 +1024,10 @@ function RenderParsedElements({ elements, textColor }: RenderParsedElementsProps
 interface RenderElementProps {
   element: ContentElement;
   textColor: string;
+  palette: ColorPalette;
 }
 
-function RenderElement({ element, textColor }: RenderElementProps) {
+function RenderElement({ element, textColor, palette }: RenderElementProps) {
   switch (element.type) {
     case 'heading': {
       const level = Math.min(6, Math.max(1, element.level ?? 1));
@@ -828,9 +1042,14 @@ function RenderElement({ element, textColor }: RenderElementProps) {
         'text-lg md:text-xl',
       ];
 
+      const headingUsesLightText = textColor.includes('text-white');
+
       return (
-        <HeadingTag className={`font-bold mb-4 leading-tight ${headingSizes[level - 1]} ${textColor}`}>
-          {processInlineFormatting(element.content || '')}
+        <HeadingTag
+          className={`font-bold mb-4 leading-tight ${headingSizes[level - 1]} ${textColor}`}
+          style={!headingUsesLightText ? { color: palette.primary } : undefined}
+        >
+          {processInlineFormatting(element.content || '', palette)}
         </HeadingTag>
       );
     }
@@ -838,21 +1057,36 @@ function RenderElement({ element, textColor }: RenderElementProps) {
     case 'paragraph':
       return (
         <p className={`text-xl md:text-2xl leading-relaxed ${textColor}`}>
-          {processInlineFormatting(element.content || '')}
+          {processInlineFormatting(element.content || '', palette)}
         </p>
       );
 
-    case 'list':
+    case 'list': {
+      if (element.ordered) {
+        return (
+          <ol className={`space-y-3 list-decimal ml-8 ${textColor}`}>
+            {element.items?.map((item, idx) => (
+              <li key={idx} className="text-xl md:text-2xl leading-relaxed">
+                {processInlineFormatting(item, palette)}
+              </li>
+            ))}
+          </ol>
+        );
+      }
+
       return (
         <ul className={`space-y-3 ${textColor}`}>
           {element.items?.map((item, idx) => (
             <li key={idx} className="flex items-start gap-4 text-xl md:text-2xl">
-              <span className="text-blue-500 text-2xl mt-1 flex-shrink-0">▸</span>
-              <span className="flex-1">{processInlineFormatting(item)}</span>
+              <span style={{ color: palette.accent }} className="text-2xl mt-1 flex-shrink-0">
+                ▸
+              </span>
+              <span className="flex-1">{processInlineFormatting(item, palette)}</span>
             </li>
           ))}
         </ul>
       );
+    }
 
     case 'code':
       return (
@@ -877,7 +1111,8 @@ function RenderElement({ element, textColor }: RenderElementProps) {
       return (
         <div className="my-8 flex items-center justify-center">
           <div 
-            className="mermaid-diagram bg-white/95 dark:bg-slate-800/95 p-6 rounded-xl shadow-lg" 
+            className="mermaid-diagram p-6 rounded-xl shadow-lg" 
+            style={{ backgroundColor: withAlpha(palette.background, 0.92) }}
             data-mermaid-code={element.content}
           />
         </div>
@@ -912,78 +1147,168 @@ function RenderElement({ element, textColor }: RenderElementProps) {
 
     case 'blockquote':
       return (
-        <blockquote className={`border-l-4 border-blue-500 pl-6 py-3 text-2xl italic ${textColor} opacity-90`}>
-          {processInlineFormatting(element.content || '')}
+        <blockquote
+          className={`border-l-4 pl-6 py-3 text-2xl italic ${textColor} opacity-90`}
+          style={{ borderColor: palette.accent }}
+        >
+          {processInlineFormatting(element.content || '', palette)}
         </blockquote>
       );
 
     case 'divider':
-      return <hr className="my-8 border-t-2 border-slate-300 dark:border-slate-600" />;
+      return <hr className="my-8 border-t-2" style={{ borderColor: withAlpha(palette.secondary, 0.35) }} />;
 
     default:
       return null;
   }
 }
 
-function processInlineFormatting(text: string): React.ReactNode {
-  // Process inline formatting (bold, italic, inline code, links, etc.)
-  const parts: React.ReactNode[] = [];
-  let currentText = text;
+function processInlineFormatting(text: string, palette?: ColorPalette): React.ReactNode {
+  const active = palette ?? DEFAULT_PALETTE;
   let key = 0;
 
-  // Remove v-click and other directives
-  currentText = currentText.replace(/v-click[^>]*/g, '');
-  currentText = currentText.replace(/<div[^>]*>/g, '').replace(/<\/div>/g, '');
-  currentText = currentText.replace(/<span[^>]*>/g, '').replace(/<\/span>/g, '');
+  const sanitizeColor = (value: string | undefined): string | undefined => {
+    if (!value) return undefined;
+    const v = value.trim();
 
-  // Process bold **text** or __text__
-  const boldRegex = /(\*\*|__)(.*?)\1/g;
-  let lastIndex = 0;
-  let match;
+    if (/^#[0-9a-f]{3,8}$/i.test(v)) return v;
+    if (/^(rgb|rgba|hsl|hsla)\(/i.test(v)) return v;
+    if (/^[a-z]{1,20}$/i.test(v)) return v;
 
-  const processText = (str: string) => {
-    // Process inline code `code`
-    const codeRegex = /`([^`]+)`/g;
-    const codeParts: React.ReactNode[] = [];
-    let codeLastIndex = 0;
-    let codeMatch;
-
-    while ((codeMatch = codeRegex.exec(str)) !== null) {
-      if (codeMatch.index > codeLastIndex) {
-        codeParts.push(str.substring(codeLastIndex, codeMatch.index));
-      }
-      codeParts.push(
-        <code key={`code-${key++}`} className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded text-sm font-mono">
-          {codeMatch[1]}
-        </code>
-      );
-      codeLastIndex = codeRegex.lastIndex;
-    }
-
-    if (codeLastIndex < str.length) {
-      codeParts.push(str.substring(codeLastIndex));
-    }
-
-    return codeParts.length > 0 ? codeParts : str;
+    return undefined;
   };
 
-  while ((match = boldRegex.exec(currentText)) !== null) {
-    if (match.index > lastIndex) {
-      const textBefore = currentText.substring(lastIndex, match.index);
-      parts.push(...(Array.isArray(processText(textBefore)) ? processText(textBefore) : [processText(textBefore)]));
+  const stripTags = (str: string) => str.replace(/<\/?[^>]+>/g, '');
+
+  const renderInlineCode = (str: string): React.ReactNode[] => {
+    const codeRegex = /`([^`]+)`/g;
+    const out: React.ReactNode[] = [];
+
+    let last = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = codeRegex.exec(str)) !== null) {
+      if (match.index > last) out.push(str.slice(last, match.index));
+
+      out.push(
+        <code
+          key={`code-${key++}`}
+          className="px-2 py-1 rounded text-sm font-mono"
+          style={{ backgroundColor: withAlpha(active.primary, 0.14) }}
+        >
+          {match[1]}
+        </code>
+      );
+
+      last = codeRegex.lastIndex;
     }
-    parts.push(
-      <strong key={`bold-${key++}`} className="font-bold text-blue-600 dark:text-blue-400">
-        {match[2]}
-      </strong>
-    );
-    lastIndex = boldRegex.lastIndex;
-  }
 
-  if (lastIndex < currentText.length) {
-    const remaining = currentText.substring(lastIndex);
-    parts.push(...(Array.isArray(processText(remaining)) ? processText(remaining) : [processText(remaining)]));
-  }
+    if (last < str.length) out.push(str.slice(last));
+    return out;
+  };
 
-  return parts.length > 0 ? <>{parts}</> : currentText;
+  const renderMarkdown = (str: string): React.ReactNode[] => {
+    const normalized = stripTags(str).replace(/\s+/g, ' ');
+    const boldRegex = /(\*\*|__)(.*?)\1/g;
+
+    const out: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = boldRegex.exec(normalized)) !== null) {
+      if (match.index > lastIndex) {
+        out.push(...renderInlineCode(normalized.slice(lastIndex, match.index)));
+      }
+
+      out.push(
+        <strong key={`bold-${key++}`} className="font-bold">
+          {renderInlineCode(match[2])}
+        </strong>
+      );
+
+      lastIndex = boldRegex.lastIndex;
+    }
+
+    if (lastIndex < normalized.length) {
+      out.push(...renderInlineCode(normalized.slice(lastIndex)));
+    }
+
+    return out;
+  };
+
+  const parseInline = (input: string): React.ReactNode[] => {
+    const out: React.ReactNode[] = [];
+    let rest = input;
+
+    const spanRegex = /<span\b[^>]*>/i;
+    const brRegex = /<br\s*\/?\s*>/i;
+
+    while (rest.length) {
+      const nextSpan = rest.search(spanRegex);
+      const nextBr = rest.search(brRegex);
+
+      const candidates = [nextSpan, nextBr].filter((i) => i >= 0);
+      const next = candidates.length ? Math.min(...candidates) : -1;
+
+      if (next === -1) {
+        out.push(...renderMarkdown(rest));
+        break;
+      }
+
+      if (next > 0) {
+        out.push(...renderMarkdown(rest.slice(0, next)));
+        rest = rest.slice(next);
+        continue;
+      }
+
+      if (nextBr === 0) {
+        out.push(<br key={`br-${key++}`} />);
+        rest = rest.replace(brRegex, '');
+        continue;
+      }
+
+      const openMatch = rest.match(/^<span\b([^>]*)>/i);
+      if (!openMatch) {
+        out.push(...renderMarkdown(rest[0]));
+        rest = rest.slice(1);
+        continue;
+      }
+
+      const attrs = openMatch[1] || '';
+      const openLen = openMatch[0].length;
+      const closeIdx = rest.toLowerCase().indexOf('</span>', openLen);
+
+      if (closeIdx === -1) {
+        out.push(...renderMarkdown(rest.slice(openLen)));
+        break;
+      }
+
+      const inner = rest.slice(openLen, closeIdx);
+      rest = rest.slice(closeIdx + '</span>'.length);
+
+      const styleMatch = attrs.match(/style\s*=\s*['"]([^'"]*)['"]/i);
+      const style = styleMatch?.[1] ?? '';
+      const colorMatch = style.match(/color\s*:\s*([^;]+)/i);
+      const color = sanitizeColor(colorMatch?.[1]);
+
+      out.push(
+        <span key={`span-${key++}`} style={color ? { color } : undefined}>
+          {parseInline(inner)}
+        </span>
+      );
+    }
+
+    return out;
+  };
+
+  const cleaned = text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s*v-click(?:=(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi, '')
+    .replace(/\s*v-after(?:=(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi, '')
+    .replace(/\s*v-motion(?:=(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi, '')
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/div>/gi, '');
+
+  const nodes = parseInline(cleaned);
+  return nodes.length ? <>{nodes}</> : cleaned;
 }
