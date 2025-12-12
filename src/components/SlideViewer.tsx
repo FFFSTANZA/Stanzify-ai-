@@ -30,7 +30,7 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
   }, []);
 
   useEffect(() => {
-    // Parse slides and extract frontmatter/layout information
+    // Parse slides - simple split on --- separator
     const slideArray = markdown
       .split("---")
       .map((slide) => slide.trim())
@@ -44,11 +44,7 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
           return `<div class="grid grid-cols-2 gap-8">\n<div>\n\n${cleanLeft}\n\n</div>\n<div>\n\n${cleanRight}\n\n</div>\n</div>`;
         }
         
-        // Remove v-click and v-clicks tags but keep content
-        let cleaned = slide.replace(/<v-clicks>/g, '').replace(/<\/v-clicks>/g, '');
-        cleaned = cleaned.replace(/v-click/g, '');
-        
-        return cleanFrontmatter(cleaned);
+        return cleanFrontmatter(slide);
       })
       .filter((slide) => slide.length > 0);
     
@@ -56,11 +52,12 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
     setCurrentSlide(0);
   }, [markdown]);
 
-  // Helper function to clean frontmatter
+  // Helper function to clean Slidev frontmatter
   const cleanFrontmatter = (content: string): string => {
     const lines = content.split('\n');
     const cleanedLines = lines.filter(line => {
       const trimmed = line.trim();
+      // Remove Slidev-specific directives
       return !trimmed.startsWith('layout:') && 
              !trimmed.startsWith('transition:') && 
              !trimmed.startsWith('class:') &&
@@ -71,7 +68,8 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
              !trimmed.startsWith('drawings:') &&
              !trimmed.startsWith('title:') &&
              !trimmed.startsWith('image:') &&
-             !trimmed.startsWith('persist:');
+             !trimmed.startsWith('persist:') &&
+             !trimmed.startsWith('scale:');
     });
     return cleanedLines.join('\n').trim();
   };
@@ -141,7 +139,16 @@ export function SlideViewer({ markdown, onEdit }: SlideViewerProps) {
     <div
       className={`flex flex-col ${isFullscreen ? "fixed inset-0 z-50 bg-background" : "h-full"}`}
     >
-      <div className="flex-1 flex items-center justify-center p-4 xl:p-8 overflow-auto">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 xl:p-8 overflow-auto">
+        <div className="w-full max-w-5xl mb-4">
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-sm">
+            <p className="font-semibold text-primary mb-1">💡 Preview Mode</p>
+            <p className="text-muted-foreground">
+              This is a basic preview. For full Slidev features (transitions, animations, presenter mode), 
+              download the markdown and run: <code className="px-2 py-1 bg-muted rounded">slidev presentation.md</code>
+            </p>
+          </div>
+        </div>
         <div 
           ref={mermaidRef}
           className="w-full max-w-5xl aspect-video bg-card rounded-xl shadow-elegant p-6 xl:p-12 overflow-auto transition-smooth"

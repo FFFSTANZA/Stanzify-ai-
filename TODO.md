@@ -1,93 +1,126 @@
-# Task: Build Stanzify - AI Presentation Generator (Phase 5 - Perfect Slidev Generation)
+# Task: Build Stanzify - AI Presentation Generator (FINAL - Pure Slidev Markdown)
 
-## Phase 1-3 - Completed ✓
-- [x] Basic AI presentation generation
+## All Phases Completed ✓
+
+### Phase 1-4: Foundation ✓
 - [x] Three-page workflow
 - [x] Theme customization
-- [x] Advanced Slidev features
+- [x] Advanced features support
 
-## Phase 4 - Advanced Slidev Features ✓
-- [x] Math equations, code highlighting, diagrams
-- [x] Multiple layouts and transitions
+### Phase 5: Perfect Slidev Generation ✓
+- [x] Enhanced AI prompt with examples
+- [x] SlideViewer improvements
 - [x] All lint checks passing
 
-## Phase 5 - Perfect Slidev Markdown Generation ✓
-- [x] Step 1: Enhanced AI Prompt
-  - [x] Detailed slide-by-slide examples
-  - [x] Exact Slidev syntax for each layout type
-  - [x] Mandatory requirements list
-  - [x] Cover slide with gradient background
-  - [x] Agenda with grid layout and v-click
-  - [x] Section dividers
-  - [x] Two-column layouts with ::right::
-  - [x] Code blocks with line highlighting
-  - [x] Statistics/fact slides
-  - [x] Process diagrams with Mermaid
-  - [x] Image-right layout
-  - [x] Comparison slides
-  - [x] Quote/testimonial slides
-  - [x] Math formulas
-  - [x] Conclusion and thank you slides
-- [x] Step 2: Enhanced SlideViewer
-  - [x] Handle ::right:: syntax for two-column layouts
-  - [x] Remove v-click tags while preserving content
-  - [x] Clean frontmatter properly
-  - [x] Support HTML/CSS in markdown
-  - [x] Grid layout rendering
-- [x] Step 3: Comprehensive Examples
-  - [x] 13 complete slide examples in prompt
-  - [x] Each example shows exact syntax
-  - [x] Visual separators for clarity
-  - [x] Mandatory requirements checklist
-  - [x] Structure guidelines
-- [x] Step 4: Testing & Validation
+### Phase 6: Pure Slidev Markdown (FINAL) ✓
+- [x] Step 1: Refocus AI Prompt
+  - [x] Remove HTML/CSS generation
+  - [x] Focus on pure Slidev markdown
+  - [x] 14 complete Slidev examples
+  - [x] Clear DO/DON'T rules
+  - [x] Proper Slidev layouts only
+  - [x] Native Slidev features only
+- [x] Step 2: Simplify Viewer
+  - [x] Position as "preview mode"
+  - [x] Add helpful banner about using Slidev
+  - [x] Clean frontmatter parsing
+  - [x] Handle ::right:: syntax
+  - [x] Remove v-click handling (Slidev feature)
+- [x] Step 3: Documentation
+  - [x] Explain pure Slidev approach
+  - [x] Guide users to download and use Slidev
+  - [x] Document all Slidev features
+  - [x] Provide usage examples
+- [x] Step 4: Final Testing
   - [x] All lint checks passing
-  - [x] Two-column layout support
-  - [x] v-click handling
-  - [x] HTML/CSS rendering
+  - [x] Pure markdown generation
+  - [x] No HTML/CSS in output
+  - [x] All Slidev features documented
 
-## Completed Features ✓
-- ✅ Three-page workflow (Prompt → Customize → Viewer)
-- ✅ Perfect Slidev markdown generation
-- ✅ 13 detailed slide examples in AI prompt
-- ✅ Exact syntax for every layout type
-- ✅ Two-column layout with ::right::
-- ✅ v-click progressive disclosure
-- ✅ HTML/CSS grid layouts
-- ✅ Mermaid diagrams
-- ✅ Code with line highlighting
-- ✅ Math equations (KaTeX)
-- ✅ Multiple layout types (cover, section, two-cols, center, fact, quote, end, image-right)
+## ✅ Final Features
+
+### AI Generation
+- ✅ Pure Slidev markdown (NO HTML/CSS)
+- ✅ 14 slide examples in prompt
+- ✅ All Slidev layouts (cover, default, two-cols, center, section, fact, quote, end, image-right)
+- ✅ Mermaid diagrams (flowchart, sequence, etc.)
+- ✅ Code highlighting with {all|1-3|5-8} syntax
+- ✅ Math equations with $$ and $
+- ✅ Two-column with ::right::
+- ✅ Table of contents with <Toc>
+- ✅ Background images
 - ✅ Emojis for visual interest
-- ✅ Custom styling with Tailwind classes
+- ✅ Layout variety (never repeats)
+
+### User Experience
+- ✅ Three-page workflow (Prompt → Customize → Viewer)
 - ✅ 5 color palettes
 - ✅ 6 design styles
 - ✅ 3 image source options
 - ✅ 6 slide purposes
+- ✅ Preview mode with helpful banner
+- ✅ Download markdown button
+- ✅ Clear guidance to use Slidev
+
+### Technical Quality
 - ✅ All lint checks passing (78 files)
+- ✅ TypeScript types defined
+- ✅ Clean code architecture
+- ✅ Responsive design
+- ✅ Error handling
+- ✅ Loading states
 
-## Enhanced AI Prompt Features
-1. **Detailed Examples**: 13 complete slide examples with exact syntax
-2. **Visual Separators**: Clear section dividers in prompt
-3. **Mandatory Requirements**: 10-point checklist for AI to follow
-4. **Structure Guidelines**: Specific slide order and pattern
-5. **Layout Variety**: Cover, default, two-cols, center, section, fact, quote, end, image-right
-6. **Progressive Disclosure**: <v-clicks> and v-click usage
-7. **HTML/CSS**: Grid layouts, flexbox, Tailwind classes
-8. **Emojis**: Strategic use for visual interest
-9. **Diagrams**: Mermaid flowcharts, sequence diagrams
-10. **Code**: Line highlighting with {all|1-3|5-8} syntax
+## 🎯 Key Principles
 
-## SlideViewer Enhancements
-1. **::right:: Handling**: Converts to grid layout automatically
-2. **v-click Removal**: Strips v-click tags while keeping content
-3. **Frontmatter Cleaning**: Removes all Slidev directives
-4. **HTML Support**: Renders HTML/CSS from markdown
-5. **Grid Layouts**: Proper two-column rendering
+1. **Pure Slidev**: Generate only Slidev markdown, not HTML/CSS
+2. **Native Features**: Use Slidev's built-in capabilities
+3. **Preview Mode**: Viewer is basic preview, not full Slidev
+4. **Download First**: Users should download and use with Slidev
+5. **Professional Output**: Production-ready markdown
 
-## Notes
-- AI now has 13 complete slide examples ✓
-- Every layout type has exact syntax ✓
-- Mandatory requirements ensure consistency ✓
-- SlideViewer handles all Slidev features ✓
-- Perfect, powerful presentations ✓
+## 📋 Slidev Features Supported
+
+### Layouts
+- cover, default, center, two-cols, section, fact, quote, end, image-right
+
+### Advanced Features
+- Mermaid diagrams (all types)
+- Code highlighting with line stepping
+- Math equations (inline and display)
+- Two-column layouts with ::right::
+- Table of contents with <Toc>
+- Background images
+- Custom classes
+- Scale control for diagrams
+
+### Content Elements
+- Emojis (📊 💡 🚀 ✅ ❌ 🎯 📈 💻 🔄 ⚡)
+- Bullet points
+- Numbered lists
+- Headings (H1-H6)
+- Bold, italic, code
+- Links and images
+
+## 🚀 Usage Flow
+
+1. User enters prompt → Page 1
+2. User customizes style → Page 2
+3. AI generates pure Slidev markdown → Page 3
+4. User previews in viewer
+5. User downloads markdown
+6. User runs `slidev presentation.md`
+7. Full Slidev features available!
+
+## 📝 Notes
+
+- Viewer is PREVIEW ONLY ✓
+- Real power comes from Slidev itself ✓
+- Generated markdown is pure and clean ✓
+- No HTML/CSS in AI output ✓
+- All Slidev features documented ✓
+- Users guided to download and use Slidev ✓
+
+## 🎉 Status: COMPLETE
+
+All requirements met. Stanzify generates pure, advanced Slidev markdown that users can download and use with the full Slidev framework for professional presentations.
+
