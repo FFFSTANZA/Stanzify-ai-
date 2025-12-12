@@ -582,33 +582,38 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
                     const match = /language-(\w+)/.exec(className || '');
                     const codeString = String(children).replace(/\n$/, '');
                     
-                    // Handle Mermaid diagrams
+                    // Handle Mermaid diagrams with proper spacing and scaling
                     if (match && match[1] === 'mermaid') {
                       return (
-                        <div className="mermaid-diagram my-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg">
-                          <div className="w-full max-w-4xl">
+                        <div className="mermaid-diagram my-8 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg overflow-x-auto max-w-full">
+                          <div className="w-full min-w-max flex justify-center">
                             {codeString}
                           </div>
                         </div>
                       );
                     }
                     
-                    // Handle regular code blocks
+                    // Handle regular code blocks with syntax highlighting
                     if (!inline && match) {
                       return (
-                        <SyntaxHighlighter
-                          style={vscDarkPlus}
-                          language={match[1]}
-                          PreTag="div"
-                          className="rounded-xl my-6 shadow-lg border border-border/20"
-                          customStyle={{
-                            fontSize: '14px',
-                            lineHeight: '1.6'
-                          }}
-                          {...props}
-                        >
-                          {codeString}
-                        </SyntaxHighlighter>
+                        <div className="my-6 rounded-xl overflow-hidden shadow-lg border border-border/20">
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            customStyle={{
+                              fontSize: '13px',
+                              lineHeight: '1.5',
+                              margin: 0,
+                              padding: '16px'
+                            }}
+                            showLineNumbers={true}
+                            wrapLines={true}
+                            {...props}
+                          >
+                            {codeString}
+                          </SyntaxHighlighter>
+                        </div>
                       );
                     }
                     
@@ -659,6 +664,14 @@ export function SlideViewer({ markdown, onNewPresentation, title = "Stanzify Pre
                     <blockquote className="border-l-4 border-blue-500 pl-6 py-4 bg-blue-50 dark:bg-blue-900/20 rounded-r-xl italic text-xl">
                       {children}
                     </blockquote>
+                  ),
+                  img: ({ src, alt, ...props }: any) => (
+                    <img 
+                      src={src} 
+                      alt={alt || 'slide image'} 
+                      className="max-w-full h-auto rounded-xl shadow-lg my-6 object-cover"
+                      {...props}
+                    />
                   ),
                 }}
               >

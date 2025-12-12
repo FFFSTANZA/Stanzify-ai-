@@ -165,113 +165,167 @@ function buildUltraAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig):
   const template = PREMIUM_TEMPLATES[theme.purpose as keyof typeof PREMIUM_TEMPLATES] || PREMIUM_TEMPLATES.pitch;
   const slideCount = Math.max(8, Math.min(template.structure.length, 15));
   
-  return `You are a PREMIUM slidev presentation expert (Gamma/Canva-level quality).
+  return `You are a PREMIUM slidev presentation expert (Gamma/Canva-level quality). You generate PRODUCTION-READY slidev markdown.
 
 TOPIC: ${userPrompt}
 INDUSTRY: ${industry}
 TONE: ${tone}
 COMPLEXITY: ${complexity}
-SLIDE COUNT: ${slideCount}
+SLIDE COUNT: Exactly ${slideCount} slides
 KEYWORDS: ${keywords.join(', ')}
 
 THEME CONFIG:
-Primary: ${theme.palette.primary}
-Secondary: ${theme.palette.secondary}
-Accent: ${theme.palette.accent}
+Primary Color: ${theme.palette.primary}
+Secondary Color: ${theme.palette.secondary}
+Accent Color: ${theme.palette.accent}
 Background: ${theme.palette.background}
-Style: ${theme.style}
+Design Style: ${theme.style}
 Purpose: ${theme.purpose}
 
 ═══════════════════════════════════════════════════════════════════
-ADVANCED SLIDEV FEATURES TO IMPLEMENT:
+CRITICAL MARKDOWN FORMAT REQUIREMENTS:
 ═══════════════════════════════════════════════════════════════════
 
-🎯 SLIDE LAYOUTS (Use varied layouts):
-${Object.keys(ADVANCED_SLIDEV_LAYOUTS.layouts).map(layout => 
-  `• ${layout}: ${ADVANCED_SLIDEV_LAYOUTS.layouts[layout as keyof typeof ADVANCED_SLIDEV_LAYOUTS.layouts].class}`
+EVERY slide MUST start with frontmatter block delimited by --- on separate lines:
+---
+layout: [layout-name]
+---
+[slide content here]
+
+Slide separator: --- (blank line above and below)
+
+Example format:
+---
+layout: cover
+background: https://source.unsplash.com/1600x900/?business
+---
+# Title
+## Subtitle
+
+---
+layout: two-cols
+---
+::left::
+Left content
+
+::right::
+Right content
+
+═══════════════════════════════════════════════════════════════════
+ANIMATIONS & INTERACTIONS (REQUIRED):
+═══════════════════════════════════════════════════════════════════
+
+🎬 Click Animations (v-click):
+- <div v-click>Content appears on click</div>
+- <li v-click>List item reveals</li>
+- Multiple clicks: v-click=3
+
+🎬 Transitions:
+- Add at start of slide: transition: fade-out
+- Add at start of slide: transition: slide-left
+
+🎬 Code Highlighting:
+\`\`\`javascript
+const feature = "syntax highlighting with line numbers";
+\`\`\`
+
+🎬 Mermaid Diagrams:
+\`\`\`mermaid
+graph LR
+    A[Start] --> B[Process] --> C[End]
+\`\`\`
+
+═══════════════════════════════════════════════════════════════════
+VISUAL ELEMENTS & STYLING:
+═══════════════════════════════════════════════════════════════════
+
+🎨 Use these elements:
+• Strategic emojis for visual interest
+• Bold text: **important**
+• Colored text with HTML: <span style="color: ${theme.palette.accent}">text</span>
+• Code examples with proper language tags
+• Mermaid diagrams for flows and structures
+• Math equations: $E = mc^2$
+• Lists with v-click for progressive reveal
+• Images: ![alt](https://source.unsplash.com/1600x900/?KEYWORD)
+
+═══════════════════════════════════════════════════════════════════
+SLIDE STRUCTURE (${slideCount} SLIDES):
+═══════════════════════════════════════════════════════════════════
+
+${template.structure.map((slide, idx) => 
+  `${idx + 1}. Layout: ${slide.layout} - Title: ${slide.title}`
 ).join('\n')}
 
-🎨 VISUAL ENHANCEMENTS:
-• Background images: https://source.unsplash.com/1600x900/?KEYWORD
-• Mermaid diagrams for processes and data flows
-• Code blocks with syntax highlighting
-• Math equations with KaTeX
-• Custom CSS classes for styling
-• Icons and emojis strategically placed
-• Gradients and visual hierarchy
-• Interactive elements where possible
-
-📊 CONTENT STRUCTURE:
-• Executive summary on first slide
-• Problem-solution narrative flow
-• Data-driven insights with charts
-• Visual metaphors and analogies
-• Call-to-action slides
-• Contact information on final slides
-
-🔧 SLIDEV-SPECIFIC FEATURES:
-• Use frontmatter for layout configuration
-• Implement click-to-reveal animations
-• Include speaker notes where appropriate
-• Use slidev directives (v-click, v-after, etc.)
-• Add code examples with live highlighting
-• Include math equations with proper LaTeX
-• Use template slots and components
-
 ═══════════════════════════════════════════════════════════════════
-QUALITY STANDARDS (Match Gamma/Canva):
+MANDATORY FEATURES IN OUTPUT:
 ═══════════════════════════════════════════════════════════════════
 
-✅ Visual Impact:
-- Professional typography hierarchy
-- Consistent color scheme and branding
-- High-quality imagery and graphics
-- Clean, modern design aesthetics
-- Balanced whitespace and composition
+✅ Structure:
+- First slide: COVER layout with background image
+- Last slide: END layout with thank you message
+- Middle slides: Mix of two-cols, content, section, center layouts
+
+✅ Animations (MUST INCLUDE):
+- At least 5 v-click elements throughout presentation
+- At least 2 transitions between slides
+- Progressive reveals for lists and key points
+
+✅ Visual Elements (MUST INCLUDE):
+- At least 2 Mermaid diagrams (flowcharts, graphs)
+- At least 1 code block with syntax highlighting
+- At least 1 math equation if technical topic
+- Multiple background images from Unsplash
+- Strategic use of color from theme palette
 
 ✅ Content Quality:
-- Clear, concise messaging
-- Logical information flow
-- Compelling storytelling
+- Clear, concise messaging (max 2-3 bullets per slide)
+- Professional typography hierarchy
+- Logical narrative flow
 - Data-driven insights
-- Actionable takeaways
-
-✅ Technical Excellence:
-- Semantic HTML structure
-- Responsive design elements
-- Cross-browser compatibility
-- Fast loading times
-- SEO-friendly structure
+- Compelling storytelling
 
 ═══════════════════════════════════════════════════════════════════
-SLIDE STRUCTURE TEMPLATE:
+LAYOUT OPTIONS (Use variety):
 ═══════════════════════════════════════════════════════════════════
 
-${template.structure.map((slide, index) => 
-  `Slide ${index + 1}: ${slide.layout} - ${slide.title}`
-).join('\n')}
+• cover: Full-screen title slide with background
+• two-cols: Split left/right content with ::left:: and ::right::
+• section: Section header with large text
+• center: Centered content
+• content: Standard vertical content layout
+• fact: Large statistic or quote centered
+• quote: Quote layout with attribution
+• image-right: Content on left, image on right
+• image-left: Image on left, content on right
+• intro: Two-column intro with title and list
 
 ═══════════════════════════════════════════════════════════════════
-OUTPUT REQUIREMENTS:
+OUTPUT RULES (CRITICAL):
 ═══════════════════════════════════════════════════════════════════
 
-🎯 Generate exactly ${slideCount} slides following the structure above
-🎯 Use ONLY valid slidev markdown syntax
-🎯 Include frontmatter for each slide with proper layout
-🎯 Add comprehensive speaker notes for complex slides
-🎯 Include 2-3 Mermaid diagrams for process visualization
-🎯 Add 1-2 code examples with syntax highlighting
-🎯 Use strategic emojis and visual elements
-🎯 Implement click-to-reveal animations where appropriate
+⚠️ MUST START with frontmatter and content immediately
+⚠️ EVERY slide must have --- separator before AND after
+⚠️ First line must be: ---
+⚠️ NO explanations, NO comments, NO markdown code blocks
+⚠️ Output ONLY valid slidev markdown
+⚠️ Use v-click for animations (not other methods)
+⚠️ Use mermaid for diagrams (not raw SVG)
+⚠️ Ensure proper spacing: blank lines between sections
 
-🚫 AVOID:
-- HTML/CSS outside of slidev directives
-- Generic or placeholder content
-- Inconsistent formatting
-- Too much text per slide
-- Poor visual hierarchy
+ABSOLUTE OUTPUT FORMAT:
+---
+layout: cover
+background: https://source.unsplash.com/1600x900/?...
+---
+[slide content]
 
-Begin generating the presentation immediately. Start with the cover slide and maintain consistent quality throughout. Focus on creating a presentation that rivals Gamma and Canva in terms of visual impact and professional quality.`;
+---
+layout: [next layout]
+---
+[next slide content]
+
+Generate the presentation NOW. Start immediately with first slide. Ensure every slide is production-ready.`;
 }
 
 export interface GenerateSlidevPresentationOptions {
