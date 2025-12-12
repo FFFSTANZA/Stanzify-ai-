@@ -1,5 +1,4 @@
 import PptxGenJS from "pptxgenjs";
-import mermaid from "mermaid";
 
 interface Slide {
   frontmatter: Record<string, string>;
@@ -91,7 +90,7 @@ function setupSlideBackground(slide: any, slideData: Slide, colors: any): void {
     case 'intro':
       // Gradient background for cover
       slide.background = { fill: colors.blue[600] };
-      slide.addShape(pptx.ShapeType.rect, {
+      slide.addShape('rect', {
         x: 0, y: 0, w: '100%', h: '100%',
         fill: { 
           type: 'solid',
@@ -353,7 +352,7 @@ async function renderElement(
       break;
 
     case 'list':
-      const bulletPoints = (element.items || []).map((item, idx) => ({
+      const bulletPoints = (element.items || []).map((item, _idx) => ({
         text: cleanText(item),
         options: { 
           bullet: true,
@@ -374,7 +373,7 @@ async function renderElement(
 
     case 'code':
       // Add code block with background
-      slide.addShape(pptx.ShapeType.rect, {
+      slide.addShape('rect', {
         x: position.x,
         y: position.y,
         w: position.w,
@@ -397,7 +396,7 @@ async function renderElement(
 
     case 'mermaid':
       // Add placeholder for mermaid diagram
-      slide.addShape(pptx.ShapeType.rect, {
+      slide.addShape('rect', {
         x: position.x,
         y: position.y,
         w: position.w,
@@ -428,7 +427,7 @@ async function renderElement(
           });
         } catch (error) {
           // Image loading failed, add placeholder
-          slide.addShape(pptx.ShapeType.rect, {
+          slide.addShape('rect', {
             x: position.x,
             y: position.y,
             w: Math.min(position.w, 4.0),
@@ -452,7 +451,7 @@ async function renderElement(
 
     case 'blockquote':
       // Add quote with styled background
-      slide.addShape(pptx.ShapeType.rect, {
+      slide.addShape('rect', {
         x: position.x,
         y: position.y,
         w: position.w,
@@ -520,7 +519,7 @@ async function renderMermaidDiagram(
       const x = startX + idx * (nodeWidth + 0.3);
       const y = startY;
       
-      slide.addShape(pptx.ShapeType.roundRect, {
+      slide.addShape('roundRect', {
         x, y,
         w: nodeWidth,
         h: nodeHeight,
@@ -546,7 +545,7 @@ async function renderMermaidDiagram(
       const toX = startX + (i + 1) * (nodeWidth + 0.3);
       const y = startY + nodeHeight / 2;
       
-      slide.addShape(pptx.ShapeType.line, {
+      slide.addShape('line', {
         x: fromX,
         y: y,
         w: toX - fromX,
