@@ -26,62 +26,67 @@ interface ContentElement {
 }
 
 export async function exportToPPTX(slides: Slide[], title: string): Promise<void> {
-  const pptx = new PptxGenJS();
-  
-  // Set presentation properties
-  pptx.author = "Stanzify";
-  pptx.company = "Stanzify";
-  pptx.subject = title;
-  pptx.title = title;
-  
-  // Define theme colors
-  const colors = {
-    primary: "3B82F6",
-    secondary: "8B5CF6",
-    accent: "EC4899",
-    dark: "1E293B",
-    medium: "64748B",
-    light: "F8FAFC",
-    white: "FFFFFF",
-    blue: {
-      50: "EFF6FF",
-      500: "3B82F6",
-      600: "2563EB",
-      700: "1D4ED8"
-    },
-    purple: {
-      500: "8B5CF6",
-      600: "7C3AED"
-    },
-    pink: {
-      500: "EC4899",
-      600: "DB2777"
-    },
-    slate: {
-      800: "1E293B",
-      900: "0F172A"
-    }
-  };
+  try {
+    const pptx = new PptxGenJS();
+    
+    // Set presentation properties
+    pptx.author = "Stanzify";
+    pptx.company = "Stanzify";
+    pptx.subject = title;
+    pptx.title = title;
+    
+    // Define theme colors
+    const colors = {
+      primary: "3B82F6",
+      secondary: "8B5CF6",
+      accent: "EC4899",
+      dark: "1E293B",
+      medium: "64748B",
+      light: "F8FAFC",
+      white: "FFFFFF",
+      blue: {
+        50: "EFF6FF",
+        500: "3B82F6",
+        600: "2563EB",
+        700: "1D4ED8"
+      },
+      purple: {
+        500: "8B5CF6",
+        600: "7C3AED"
+      },
+      pink: {
+        500: "EC4899",
+        600: "DB2777"
+      },
+      slate: {
+        800: "1E293B",
+        900: "0F172A"
+      }
+    };
 
-  // Process each slide
-  for (let i = 0; i < slides.length; i++) {
-    const slideData = slides[i];
-    const slide = pptx.addSlide();
-    
-    // Set background based on layout
-    await setupSlideBackground(slide, slideData, colors);
-    
-    // Render content based on layout type
-    if (slideData.isTwoColumn) {
-      await addTwoColumnContent(slide, slideData, colors);
-    } else {
-      await addSingleColumnContent(slide, slideData, colors);
+    // Process each slide
+    for (let i = 0; i < slides.length; i++) {
+      const slideData = slides[i];
+      const slide = pptx.addSlide();
+      
+      // Set background based on layout
+      setupSlideBackground(slide, slideData, colors);
+      
+      // Render content based on layout type
+      if (slideData.isTwoColumn) {
+        await addTwoColumnContent(slide, slideData, colors);
+      } else {
+        await addSingleColumnContent(slide, slideData, colors);
+      }
     }
+
+    // Generate PPTX and trigger download
+    // writeFile automatically handles browser download and Node.js file writing
+    await (pptx as any).writeFile({ fileName: `${title.toLowerCase().replace(/\s+/g, '-')}.pptx` });
+  } catch (error) {
+    console.error('PPTX export error:', error);
+    throw new Error(`Failed to export presentation: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-
-  // Save the presentation
-  const filename = `${title.toLowerCase().replace(/\s+/g, '-')}.pptx`;
-  await pptx.writeFile({ fileName: filename });
 }
 
 function setupSlideBackground(slide: any, slideData: Slide, colors: any): void {

@@ -184,8 +184,12 @@ function buildUltraAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig):
         ? ('educational' as keyof typeof PREMIUM_TEMPLATES)
         : ('pitch' as keyof typeof PREMIUM_TEMPLATES);
 
-  const rawSlideCount = (PREMIUM_TEMPLATES[templateKey] || PREMIUM_TEMPLATES.pitch).structure.reduce((sum, s) => sum + (s.slides || 1), 0);
+  const template = PREMIUM_TEMPLATES[templateKey] || PREMIUM_TEMPLATES.pitch;
+  const rawSlideCount = template.structure.reduce((sum, s) => sum + (s.slides || 1), 0);
   const slideCount = Math.max(8, Math.min(rawSlideCount, 18));
+  const slideStructureLines = template.structure.map((slide: any, idx: number) => 
+    `${idx + 1}. Layout: ${slide.layout} - Title: ${slide.title}`
+  ).join('\n');
   
   return `You are a PREMIUM slidev presentation expert (Gamma/Canva-level quality). You generate PRODUCTION-READY slidev markdown.
 
@@ -288,9 +292,7 @@ VISUAL ELEMENTS & STYLING:
 SLIDE STRUCTURE (${slideCount} SLIDES) — FOR PLANNING ONLY (DO NOT INCLUDE THIS OUTLINE IN OUTPUT):
 ═══════════════════════════════════════════════════════════════════
 
-${template.structure.map((slide, idx) => 
-  `${idx + 1}. Layout: ${slide.layout} - Title: ${slide.title}`
-).join('\n')}
+${slideStructureLines}
 
 ═══════════════════════════════════════════════════════════════════
 MANDATORY FEATURES IN OUTPUT:
@@ -380,8 +382,7 @@ export async function generateSlidevPresentation(
     theme, 
     onProgress,
     temperature = 0.8, // Higher creativity for premium content
-    maxRetries = 3,
-    template = 'custom'
+    maxRetries = 3
   } = options;
 
   const systemPrompt = buildUltraAdvancedSlidevPrompt(prompt, theme);
