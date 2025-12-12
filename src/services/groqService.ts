@@ -144,17 +144,17 @@ async function generateSlidesLegacy(
         messages: [
           {
             role: "system",
-            content: "You are a world-class presentation designer. Output ONLY valid Slidev markdown with NO explanations."
+            content: "You are a world-class presentation designer (Gamma/Canva-level). Output ONLY valid Slidev markdown with NO explanations. Apply theme colors, use multiple diagram types, include animations."
           },
           {
             role: "user",
             content: systemPrompt,
           },
         ],
-        model: "llama-3.3-70b-versatile",
+        model: "mixtral-8x7b-32768",
         temperature: temperature,
-        max_tokens: 8000,
-        top_p: 0.9,
+        max_tokens: 12000,
+        top_p: 0.95,
         stream: true,
       });
 

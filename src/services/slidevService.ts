@@ -228,6 +228,45 @@ function extractAdvancedKeywords(prompt: string): {
   };
 }
 
+// Helper: Convert hex to RGB for CSS gradients
+function hexToRgb(hex: string): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}` : '59,130,246';
+}
+
+// Helper: Build color styling guide
+function buildColorStylingGuide(theme: ThemeConfig): string {
+  return `
+Primary: ${theme.palette.primary} (Headings, main text)
+Accent: ${theme.palette.accent} (Highlights, emphasis)
+Secondary: ${theme.palette.secondary} (Supporting elements)
+Background: ${theme.palette.background} (Slide background/contrast)
+  `;
+}
+
+// Helper: Get visual focus for each layout type
+function getVisualFocusForLayout(layout: string): string {
+  const focuses: Record<string, string> = {
+    'cover': 'Title prominence, background image',
+    'two-cols': 'Left-right balance, dual content',
+    'section': 'Large text, section break',
+    'center': 'Centered content, visual focus',
+    'content': 'Vertical text flow, bullet structure',
+    'fact': 'Large statistic, minimal text',
+    'quote': 'Citation, attribution, emphasis',
+    'image-right': 'Text on left, image on right',
+    'image-left': 'Image on left, text on right',
+    'intro': 'Two-column intro with title',
+    'end': 'Closing slide, call to action'
+  };
+  return focuses[layout] || 'content';
+}
+
+// Helper: Get first layout for opening slide
+function getFirstLayout(layout: string): string {
+  return layout === 'cover' ? 'cover' : 'cover';
+}
+
 // Generate advanced slidev markdown with full features
 function buildUltraAdvancedSlidevPrompt(userPrompt: string, theme: ThemeConfig): string {
   const { keywords, industry, tone, complexity } = extractAdvancedKeywords(userPrompt);
@@ -452,16 +491,30 @@ export async function generateSlidevPresentation(
         messages: [
           {
             role: "system",
-            content: `You are a world-class slidev presentation designer. You create premium presentations that rival Gamma and Canva in quality. Output ONLY valid slidev markdown with NO explanations, comments, or extraneous text. Use the full power of slidev including layouts, animations, Mermaid diagrams, code highlighting, and custom styling.`
+            content: `You are a world-class Premium Presentation Designer (Gamma/Beautiful.ai/Canva-level). You are an expert in:
+- Enterprise-grade slidev markdown generation
+- Professional color theory and design systems
+- Complex diagram creation (flowcharts, mindmaps, sequences)
+- Data visualization and storytelling
+- Accessibility and responsive design
+- Animation and interactive elements
+
+MANDATORY: 
+- Output ONLY valid slidev markdown - NO explanations
+- Apply theme colors EVERYWHERE intelligently
+- Include 3+ different diagram types
+- Strategic animations and transitions
+- Perfect formatting with proper spacing
+- Enterprise-quality content structure`
           },
           {
             role: "user",
             content: systemPrompt,
           },
         ],
-        model: "llama-3.3-70b-versatile", // Most powerful model for premium content
+        model: "mixtral-8x7b-32768", // Use Mixtral for better reasoning and longer outputs
         temperature: temperature,
-        max_tokens: 12000, // Increased for complex presentations
+        max_tokens: 16000, // More tokens for premium content with diagrams
         top_p: 0.95, // Higher creativity
         stream: true,
       });
