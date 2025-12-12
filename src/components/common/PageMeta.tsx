@@ -1,4 +1,5 @@
 import { HelmetProvider, Helmet } from "react-helmet-async";
+import { Toaster } from "sonner";
 
 const PageMeta = ({
   title,
@@ -14,7 +15,10 @@ const PageMeta = ({
 );
 
 export const AppWrapper = ({ children }: { children: React.ReactNode }) => (
-  <HelmetProvider>{children}</HelmetProvider>
+  <HelmetProvider>
+    {children}
+    <Toaster position="top-right" richColors />
+  </HelmetProvider>
 );
 
 export default PageMeta;
