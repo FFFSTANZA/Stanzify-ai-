@@ -3,12 +3,12 @@ const FALLBACK_PLACEHOLDERS = {
   business: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%22%234F46E5%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E📊%20Business%20Content%3C/text%3E%3C/svg%3E',
   technology: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%223B82F6%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E💻%20Tech%20Content%3C/text%3E%3C/svg%3E',
   education: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%2310B981%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E📚%20Learning%20Content%3C/text%3E%3C/svg%3E',
-  marketing: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%22F97316%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E🎯%20Marketing%20Content%3C/text%3E%3C/svg%3E',
+  marketing: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%22%23F97316%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E🎯%20Marketing%20Content%3C/text%3E%3C/svg%3E',
   pitch: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%228B5CF6%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E🚀%20Pitch%20Content%3C/text%3E%3C/svg%3E',
   default: 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%201200%20675%22%3E%3Crect%20fill=%23667EEA%22%20width=%221200%22%20height=%22675%22/%3E%3Ctext%20x=%22600%22%20y=%22337%22%20font-size=%2248%22%20fill=%22white%22%20text-anchor=%22middle%22%20dominant-baseline=%22middle%22%3E✨%20Content%20Section%3C/text%3E%3C/svg%3E',
 };
 
-const UNSPLASH_ACCESS_KEY = process.env.VITE_UNSPLASH_ACCESS_KEY || '';
+const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY ?? '';
 const UNSPLASH_API_URL = 'https://api.unsplash.com';
 
 // Retry configuration
