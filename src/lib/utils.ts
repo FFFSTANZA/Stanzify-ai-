@@ -37,3 +37,21 @@ export function formatDate(
     ...opts,
   }).format(new Date(date));
 }
+
+export function getContrastColor(hexColor: string): string {
+  // If no color provided or invalid, default to black text
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return '#000000';
+  }
+
+  // Convert hex to RGB
+  const r = parseInt(hexColor.substr(1, 2), 16);
+  const g = parseInt(hexColor.substr(3, 2), 16);
+  const b = parseInt(hexColor.substr(5, 2), 16);
+
+  // Calculate luminance
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+  // Return black or white based on luminance
+  return (yiq >= 128) ? '#000000' : '#ffffff';
+}

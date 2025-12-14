@@ -107,26 +107,27 @@ COMPONENT SELECTION RULES:
 3. **bullet_list** - Use for key points, agenda, takeaways
 4. **two_column** or **three_column** - Use for comparisons, explanations
 5. **stats** - Use for metrics, KPIs, achievements, numbers
-6. **timeline** - Use for chronological events, history, roadmap
-7. **process** - Use for step-by-step workflows, "how it works"
-8. **feature** - Use for product features, benefits, capabilities
-9. **comparison** - Use for side-by-side comparisons, pros/cons
-10. **quote** - Use for testimonials, impactful quotes, social proof
-11. **pricing** - Use for pricing tiers, packages, plans
-12. **team** - Use for team introductions, about us
-13. **cta** - Use for strong calls-to-action, signup prompts
-14. **before_after** - Use for transformation, problem/solution
-15. **code_demo** - Use for technical content, code examples
-16. **quiz** - Use for engagement, testing knowledge
-17. **accordion** or **tabs** - Use for organizing detailed content
-18. **table** - Use for structured data, detailed comparisons
-19. **grid** - Use for showcasing multiple items/cards
-20. **card** - Use for highlighting single important message
-21. **image_gallery** - Use when multiple images needed
-22. **video** - Use for video content (provide placeholder)
-23. **roadmap** - Use for future plans, phases
-24. **flashcard** - Use for education, key concepts
-25. **end** - Use for closing/thank you slide only
+6. **chart** - Use for visual data trends (bar, line, pie, area, donut)
+7. **timeline** - Use for chronological events, history, roadmap
+8. **process** - Use for step-by-step workflows, "how it works"
+9. **feature** - Use for product features, benefits, capabilities
+10. **comparison** - Use for side-by-side comparisons, pros/cons
+11. **quote** - Use for testimonials, impactful quotes, social proof
+12. **pricing** - Use for pricing tiers, packages, plans
+13. **team** - Use for team introductions, about us
+14. **cta** - Use for strong calls-to-action, signup prompts
+15. **before_after** - Use for transformation, problem/solution
+16. **code_demo** - Use for technical content, code examples
+17. **quiz** - Use for engagement, testing knowledge
+18. **accordion** or **tabs** - Use for organizing detailed content
+19. **table** - Use for structured data, detailed comparisons
+20. **grid** - Use for showcasing multiple items/cards
+21. **card** - Use for highlighting single important message
+22. **image_gallery** - Use when multiple images needed
+23. **video** - Use for video content (provide placeholder)
+24. **roadmap** - Use for future plans, phases
+25. **flashcard** - Use for education, key concepts
+26. **end** - Use for closing/thank you slide only
 
 CONTENT GUIDELINES:
 - Make content specific and relevant to the user's topic

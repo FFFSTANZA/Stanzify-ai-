@@ -26,6 +26,7 @@ import { CodeDemoSlide } from './CodeDemoSlide';
 import { BulletListSlide } from './BulletListSlide';
 import { SectionSlide } from './SectionSlide';
 import { TableSlide } from './TableSlide';
+import { ChartSlide } from './ChartSlide';
 import { EndSlide } from './EndSlide';
 
 export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
@@ -410,6 +411,23 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     },
   },
   
+  chart: {
+    id: 'chart',
+    name: 'Chart Visualization',
+    category: 'data',
+    description: 'Display data using charts (bar, line, pie, area)',
+    useCases: ['Data trends', 'Statistics', 'Comparisons', 'Distributions'],
+    tags: ['chart', 'graph', 'data', 'visualization', 'bar', 'pie', 'line'],
+    propsSchema: {
+      title: { type: 'string', description: 'Chart title' },
+      chartType: { type: 'enum', enumValues: ['bar', 'line', 'pie', 'area', 'donut'], required: true, default: 'bar' },
+      data: { type: 'array', required: true, description: 'Data points with name and value' },
+      description: { type: 'string', description: 'Chart description' },
+      xAxisLabel: { type: 'string', description: 'X-axis label' },
+      yAxisLabel: { type: 'string', description: 'Y-axis label' },
+    },
+  },
+  
   end: {
     id: 'end',
     name: 'End Slide',
@@ -453,6 +471,7 @@ export const COMPONENT_MAP: Record<string, any> = {
   bullet_list: BulletListSlide,
   section: SectionSlide,
   table: TableSlide,
+  chart: ChartSlide,
   end: EndSlide,
 };
 

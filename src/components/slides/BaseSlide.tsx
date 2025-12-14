@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, getContrastColor } from '@/lib/utils';
 import type { SlideComponentProps } from '@/types/componentSlide';
 
 export interface BaseSlideProps extends SlideComponentProps {
@@ -40,8 +40,21 @@ export function BaseSlide({
     bottom: 'justify-end',
   };
 
+  const bgColor = background || palette?.background || '#ffffff';
+  // Only apply contrast color if we have a specific background color set from palette or prop
+  // Otherwise let the theme CSS handle it (which handles defaults)
+  // Actually, since we default to #ffffff above, we should set text color.
+  // But wait, if palette.background is undefined, we default to #ffffff.
+  // If we force text color to black (contrast of white), we might override dark theme default text color
+  // if the dark theme didn't provide palette.background but relied on CSS.
+  
+  // However, ComponentSlideViewer passes palette.background. If it's missing, it defaults to DEFAULT_PALETTE which has white bg.
+  
+  const textColor = getContrastColor(bgColor);
+
   const style: React.CSSProperties = {
-    backgroundColor: background || palette?.background || '#ffffff',
+    backgroundColor: bgColor,
+    color: textColor,
     backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
