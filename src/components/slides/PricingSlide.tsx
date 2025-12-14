@@ -18,6 +18,9 @@ export function PricingSlide({
   plans,
   ...baseProps
 }: PricingSlideProps) {
+  const mdGridColsClass =
+    plans.length <= 1 ? 'md:grid-cols-1' : plans.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3';
+
   return (
     <BaseSlide {...baseProps} align="center" verticalAlign="center">
       {title && (
@@ -28,7 +31,7 @@ export function PricingSlide({
           {title}
         </h1>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className={`grid grid-cols-1 ${mdGridColsClass} gap-8 max-w-6xl mx-auto`}>
         {plans.map((plan, index) => (
           <div
             key={index}
@@ -52,7 +55,7 @@ export function PricingSlide({
               {plan.period && <span className="text-xl ml-2 opacity-70">/{plan.period}</span>}
             </div>
             <ul className="space-y-3 mb-8 flex-1">
-              {plan.features.map((feature, fidx) => (
+              {(plan.features ?? []).map((feature, fidx) => (
                 <li key={fidx} className={`flex items-start gap-3 ${plan.highlighted ? 'text-white' : ''}`}>
                   <Check className={`w-5 h-5 mt-1 shrink-0 ${plan.highlighted ? 'text-white' : ''}`} style={{ color: !plan.highlighted ? baseProps.palette?.accent : undefined }} />
                   <span>{feature}</span>
