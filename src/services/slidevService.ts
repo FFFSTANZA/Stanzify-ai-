@@ -278,7 +278,7 @@ const feature = "syntax highlighting with line numbers";
 
 🎬 Mermaid Diagrams (NEAT, flowchart-first, napkin-like):
 \`\`\`mermaid
-%%{init: {'theme':'base','flowchart':{'curve':'basis'},'themeVariables':{'primaryColor':'${theme.palette.primary}','primaryBorderColor':'${theme.palette.accent}','lineColor':'${theme.palette.secondary}','fontFamily':'Inter, system-ui, sans-serif','fontSize':'18px'}}}%%
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"${theme.palette.primary}","primaryTextColor":"#000","primaryBorderColor":"${theme.palette.accent}","lineColor":"${theme.palette.secondary}","fontFamily":"Inter, system-ui, sans-serif"}}}%%
 flowchart LR
   A[Market Need] --> B[Our Solution] --> C[Competitive Advantage]
 \`\`\`

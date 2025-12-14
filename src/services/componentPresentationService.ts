@@ -93,13 +93,29 @@ YOUR TASK:
 1. Analyze the user's request and determine the best slide structure
 2. For EACH slide, select the MOST APPROPRIATE component from the library
 3. Fill in ALL required props for each component
-4. Create a cohesive, professional presentation (8-15 slides)
-5. Use variety - don't repeat the same component type unless necessary
+4. Create a cohesive, professional presentation (10-15 slides)
+5. Use variety - MUST use many different component types
 
-VARIETY REQUIREMENTS (MANDATORY):
-- Use at least 6 distinct componentId values across the deck (including hero and end)
-- Use "bullet_list" at most 2 times total
-- Prefer specialized components (feature, process, stats, timeline, pricing, chart, grid) instead of bullet_list whenever applicable
+CRITICAL VARIETY REQUIREMENTS (ABSOLUTELY MANDATORY - NO EXCEPTIONS):
+- MUST use at least 8 DISTINCT componentId values across the entire deck
+- First slide MUST be "hero" component
+- Last slide MUST be "end" component
+- Use "bullet_list" MAXIMUM 1 time (only for agenda or key takeaways if absolutely necessary)
+- You MUST use specialized rich components for ALL content:
+  * Use "feature" for benefits, capabilities, highlights, advantages
+  * Use "stats" for numbers, metrics, data points, KPIs  
+  * Use "process" for steps, workflows, how-it-works, methodologies
+  * Use "timeline" for history, roadmap, milestones, chronology
+  * Use "comparison" for versus, alternatives, before/after
+  * Use "grid" for showcasing multiple items/cards
+  * Use "two_column" or "three_column" for multi-point content
+  * Use "chart" for trends and data visualization
+  * Use "pricing" for plans/tiers/packages
+  * Use "quote" for testimonials or impactful statements
+  * Use "cta" for calls-to-action
+  * Use "card" for single important messages
+- NEVER default to bullet_list - always find a better specialized component
+- Aim for 10-12 slides minimum with maximum component diversity
 
 OUTPUT FORMAT (CRITICAL):
 You MUST output ONLY valid JSON in this EXACT structure:
@@ -124,43 +140,83 @@ You MUST output ONLY valid JSON in this EXACT structure:
     },
     {
       "id": "slide-2",
-      "componentId": "bullet_list",
+      "componentId": "stats",
       "props": {
-        "title": "Key Points",
-        "items": ["Point 1", "Point 2", "Point 3"],
-        "icon": "📋"
+        "title": "Key Metrics",
+        "stats": [
+          { "value": "500K+", "label": "Active Users", "icon": "👥" },
+          { "value": "99.9%", "label": "Uptime", "icon": "⚡" },
+          { "value": "4.9/5", "label": "Rating", "icon": "⭐" }
+        ],
+        "layout": "horizontal"
+      }
+    },
+    {
+      "id": "slide-3",
+      "componentId": "feature",
+      "props": {
+        "title": "Core Features",
+        "features": [
+          { "title": "Fast Performance", "description": "Lightning-fast load times", "icon": "⚡" },
+          { "title": "Secure", "description": "Enterprise-grade security", "icon": "🔒" },
+          { "title": "Scalable", "description": "Grows with your needs", "icon": "📈" }
+        ],
+        "layout": "grid"
+      }
+    },
+    {
+      "id": "slide-4",
+      "componentId": "process",
+      "props": {
+        "title": "How It Works",
+        "steps": [
+          { "title": "Sign Up", "description": "Create your account", "icon": "1️⃣" },
+          { "title": "Configure", "description": "Set up your workspace", "icon": "2️⃣" },
+          { "title": "Launch", "description": "Go live instantly", "icon": "3️⃣" }
+        ],
+        "layout": "horizontal"
       }
     }
   ]
 }
 
-COMPONENT SELECTION RULES:
-1. **hero** - Use for opening/cover slide only
+COMPONENT SELECTION RULES (MUST FOLLOW EXACTLY):
+1. **hero** - REQUIRED for opening/cover slide (slide 1 only)
 2. **section** - Use for section dividers between major topics
-3. **bullet_list** - Use for key points, agenda, takeaways
-4. **two_column** or **three_column** - Use for comparisons, explanations
-5. **stats** - Use for metrics, KPIs, achievements, numbers
-6. **chart** - Use for visual data trends (bar, line, pie, area, donut)
-7. **timeline** - Use for chronological events, history, roadmap
-8. **process** - Use for step-by-step workflows, "how it works"
-9. **feature** - Use for product features, benefits, capabilities
-10. **comparison** - Use for side-by-side comparisons, pros/cons
-11. **quote** - Use for testimonials, impactful quotes, social proof
-12. **pricing** - Use for pricing tiers, packages, plans
-13. **team** - Use for team introductions, about us
-14. **cta** - Use for strong calls-to-action, signup prompts
-15. **before_after** - Use for transformation, problem/solution
-16. **code_demo** - Use for technical content, code examples
-17. **quiz** - Use for engagement, testing knowledge
-18. **accordion** or **tabs** - Use for organizing detailed content
-19. **table** - Use for structured data, detailed comparisons
-20. **grid** - Use for showcasing multiple items/cards
-21. **card** - Use for highlighting single important message
-22. **image_gallery** - Use when multiple images needed
-23. **video** - Use for video content (provide placeholder)
-24. **roadmap** - Use for future plans, phases
-25. **flashcard** - Use for education, key concepts
-26. **end** - Use for closing/thank you slide only
+3. **bullet_list** - AVOID! Use maximum 1 time. Only for simple agenda/takeaways if absolutely necessary
+4. **two_column** - Use for side-by-side content, comparisons, dual concepts
+5. **three_column** - Use for three related points or categories
+6. **stats** - PREFERRED for any numbers, metrics, KPIs, achievements, data points
+7. **chart** - Use for visual data trends (bar, line, pie, area, donut charts)
+8. **timeline** - PREFERRED for chronological events, history, roadmap, milestones
+9. **process** - PREFERRED for step-by-step workflows, "how it works", methodologies
+10. **feature** - PREFERRED for product features, benefits, capabilities, highlights, advantages
+11. **comparison** - Use for side-by-side comparisons, pros/cons, A vs B
+12. **quote** - Use for testimonials, impactful quotes, social proof, customer feedback
+13. **pricing** - REQUIRED for pricing tiers, packages, plans (never use bullet_list for pricing)
+14. **team** - Use for team introductions, about us, meet the team
+15. **cta** - Use for strong calls-to-action, signup prompts, next steps
+16. **before_after** - Use for transformation, problem/solution, improvements
+17. **code_demo** - Use for technical content, code examples, API demos
+18. **quiz** - Use for engagement, testing knowledge, interactive questions
+19. **accordion** - Use for organizing FAQ, detailed content with toggles
+20. **tabs** - Use for organizing related content into tabbed sections
+21. **table** - Use for structured data, detailed comparisons, specifications
+22. **grid** - PREFERRED for showcasing 4-8 items/cards in a grid layout
+23. **card** - Use sparingly for highlighting single important message
+24. **image_gallery** - Use when multiple images needed
+25. **video** - Use for video content (provide YouTube/video placeholder)
+26. **roadmap** - Use for future plans, phases, strategic timeline
+27. **flashcard** - Use for education, key concepts, learning cards
+28. **end** - REQUIRED for closing/thank you slide (last slide only)
+
+SELECTION PRIORITY:
+- When you have a list of features/benefits → use "feature" component
+- When you have numbers/metrics/data → use "stats" component  
+- When you have sequential steps/process → use "process" component
+- When you have 4+ similar items → use "grid" component
+- When you have timeline/history → use "timeline" component
+- ONLY use "bullet_list" as absolute last resort
 
 PRICING COMPONENT (IMPORTANT):
 - If a slide contains multiple plans/tiers/packages + prices, you MUST use componentId "pricing" (never bullet_list for pricing).
@@ -193,11 +249,29 @@ CRITICAL RULES:
 - Output ONLY valid JSON (no markdown, no code fences, no explanations)
 - First slide MUST be "hero" component
 - Last slide MUST be "end" component
-- Include 8-15 slides total
+- Include 10-15 slides total
 - Each slide MUST have valid componentId from the library
 - All required props MUST be filled
-- Use variety in component selection
+- MUST use at least 8 DISTINCT component types
+- Maximum 1 bullet_list allowed
 - Apply theme colors where appropriate (in descriptions, emphasis)
+
+═══════════════════════════════════════════════════════════════════
+FINAL REMINDERS (ABSOLUTELY CRITICAL):
+═══════════════════════════════════════════════════════════════════
+
+🚨 DO NOT USE bullet_list FOR:
+- Features/Benefits → Use "feature" component
+- Numbers/Metrics → Use "stats" component
+- Steps/Process → Use "process" component
+- Multiple items → Use "grid" component
+- Timeline/History → Use "timeline" component
+
+✅ ALWAYS PREFER specialized rich components over simple lists
+
+✅ AIM FOR MAXIMUM VISUAL DIVERSITY - use as many different component types as relevant
+
+✅ Your presentation should showcase the FULL POWER of the component library
 
 START GENERATING NOW - OUTPUT ONLY JSON:`;
 }
@@ -804,20 +878,20 @@ function sanitizeComponentSlides(presentationData: ComponentPresentationData) {
 function ensureComponentVariety(presentationData: ComponentPresentationData) {
   const slides = presentationData.slides;
 
+  // Convert ALL bullet_list slides (except maybe 1) to rich components
   const bulletIndices = slides
     .map((s, idx) => (s.componentId === 'bullet_list' ? idx : -1))
     .filter((idx) => idx >= 0)
     .filter((idx) => idx !== 0 && idx !== slides.length - 1);
 
-  if (bulletIndices.length > 2) {
-    for (const idx of bulletIndices.slice(2)) {
+  // Keep maximum 1 bullet_list, convert the rest
+  if (bulletIndices.length > 1) {
+    for (const idx of bulletIndices.slice(1)) {
       coerceBulletListToRichComponent(slides[idx]);
     }
   }
 
-  const uniqueComponents = new Set(slides.map((s) => s.componentId));
-  if (uniqueComponents.size >= 6) return;
-
+  // Convert ALL card slides to rich components
   for (let i = 1; i < slides.length - 1; i++) {
     const slide = slides[i];
     if (slide.componentId !== 'card') continue;
@@ -836,10 +910,24 @@ function ensureComponentVariety(presentationData: ComponentPresentationData) {
         }),
         layout: 'list',
       };
-
-      uniqueComponents.add('feature');
-      if (uniqueComponents.size >= 6) return;
     }
+  }
+
+  // Check component diversity
+  const uniqueComponents = new Set(slides.map((s) => s.componentId));
+  const componentCounts = slides.map(s => s.componentId);
+  
+  console.log('Component variety check:', {
+    totalSlides: slides.length,
+    uniqueComponents: uniqueComponents.size,
+    componentBreakdown: Array.from(uniqueComponents).map(id => ({
+      id,
+      count: componentCounts.filter(c => c === id).length
+    }))
+  });
+
+  if (uniqueComponents.size < 6) {
+    console.warn(`LOW COMPONENT DIVERSITY: Only ${uniqueComponents.size} unique components used. Target is 8+.`);
   }
 }
 
@@ -865,16 +953,23 @@ export async function generateComponentPresentation(
         messages: [
           {
             role: "system",
-            content: `You are a world-class presentation designer and AI architect. You create structured, component-based presentations using a library of reusable UI components.
+            content: `You are a world-class presentation designer (like Canva/Gamma.app) creating component-based presentations. You have access to 27+ specialized UI components.
 
-Your output MUST be valid JSON only - no markdown, no explanations, no code fences.
+CRITICAL RULES (NO EXCEPTIONS):
+1. Output ONLY valid JSON - no markdown, no explanations, no code fences
+2. NEVER use "bullet_list" unless absolutely necessary (max 1 time)
+3. ALWAYS use specialized components: feature, stats, process, timeline, grid, chart, comparison, etc.
+4. MUST use at least 8 DISTINCT component types per presentation
+5. Every slide must use the MOST APPROPRIATE specialized component for its content
 
-You are an expert at:
-- Selecting the perfect component for each type of content
-- Creating logical narrative flow
-- Writing compelling, concise copy
-- Using visual hierarchy and design principles
-- Matching content to the user's goals and audience`,
+You are an EXPERT at:
+- Intelligently mapping content to the perfect specialized component
+- Creating visually stunning, diverse presentations
+- Using rich components (feature, stats, process, grid) instead of plain lists
+- Writing compelling, concise copy with proper structure
+- Maximizing component variety and visual impact
+
+REMEMBER: Your presentations use BEAUTIFUL visual components, NOT plain text or bullet lists!`,
           },
           {
             role: "user",
@@ -955,16 +1050,39 @@ You are an expert at:
         }
       }
 
+      // Apply transformations
       coercePricingSlides(presentationData);
       sanitizeComponentSlides(presentationData);
       ensureComponentVariety(presentationData);
       sanitizeComponentSlides(presentationData);
 
-      console.log('Successfully generated component presentation:', {
+      // Validate component diversity BEFORE accepting
+      const componentIds = presentationData.slides.map(s => s.componentId);
+      const uniqueComponents = new Set(componentIds);
+      const bulletListCount = componentIds.filter(id => id === 'bullet_list').length;
+      
+      console.log('Generated component presentation:', {
         title: presentationData.title,
         slideCount: presentationData.slides.length,
-        components: presentationData.slides.map(s => s.componentId),
+        uniqueComponents: uniqueComponents.size,
+        bulletListCount,
+        components: componentIds,
       });
+
+      // Enforce diversity requirements
+      if (uniqueComponents.size < 6) {
+        throw new Error(
+          `Insufficient component diversity: Only ${uniqueComponents.size} unique components used (minimum 6 required). ` +
+          `Components: ${Array.from(uniqueComponents).join(', ')}`
+        );
+      }
+
+      if (bulletListCount > 2) {
+        throw new Error(
+          `Too many bullet_list slides: ${bulletListCount} used (maximum 2 allowed). ` +
+          `Use specialized components like feature, stats, process, grid instead.`
+        );
+      }
 
       return presentationData;
 
