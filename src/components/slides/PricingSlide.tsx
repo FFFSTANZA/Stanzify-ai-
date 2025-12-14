@@ -30,16 +30,16 @@ export function PricingSlide({
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {plans.map((plan, index) => (
-          <div 
+          <div
             key={index}
             className={`flex flex-col p-8 rounded-2xl shadow-xl ${
               plan.highlighted ? 'ring-4 scale-105' : 'bg-white'
             } animate-in fade-in zoom-in duration-500`}
             style={{
               animationDelay: `${index * 150}ms`,
-              ringColor: plan.highlighted ? baseProps.palette?.accent : undefined,
+              '--tw-ring-color': plan.highlighted ? baseProps.palette?.accent : undefined,
               backgroundColor: plan.highlighted ? baseProps.palette?.accent : undefined,
-            }}
+            } as React.CSSProperties}
           >
             <h3 
               className={`text-2xl font-bold mb-2 ${plan.highlighted ? 'text-white' : ''}`}
