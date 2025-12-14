@@ -35,13 +35,16 @@ export default function ViewerPage() {
     generatePresentation(parsedConfig);
   }, []);
 
-  const generatePresentation = async (presentationConfig: any) => {
+  const generatePresentation = async (
+    presentationConfig: any,
+    mode: 'slidev' | 'component' = presentationMode
+  ) => {
     setIsLoading(true);
     setIsGenerating(true);
     setMarkdown("");
     setComponentData(null);
     setProgressMessage(
-      presentationMode === 'component'
+      mode === 'component'
         ? "Initializing component-based presentation..."
         : "Initializing AI-powered slidev generation..."
     );
@@ -56,7 +59,7 @@ export default function ViewerPage() {
         imageSource: presentationConfig.imageSource,
       };
 
-      if (presentationMode === 'component') {
+      if (mode === 'component') {
         let accumulatedJson = "";
         
         const updateProgress = (chunk: string) => {
@@ -322,7 +325,7 @@ export default function ViewerPage() {
                 onClick={() => {
                   setPresentationMode('component');
                   if (config && !isGenerating) {
-                    generatePresentation(config);
+                    generatePresentation(config, 'component');
                   }
                 }}
                 className="gap-2"
@@ -337,7 +340,7 @@ export default function ViewerPage() {
                 onClick={() => {
                   setPresentationMode('slidev');
                   if (config && !isGenerating) {
-                    generatePresentation(config);
+                    generatePresentation(config, 'slidev');
                   }
                 }}
                 className="gap-2"

@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import type { ComponentPresentationData } from '@/types/componentSlide';
+import type { ComponentPresentationData, PropSchema } from '@/types/componentSlide';
 import { COMPONENT_REGISTRY } from '@/components/slides/registry';
 
 const groq = new Groq({
@@ -25,18 +25,46 @@ interface GenerateComponentPresentationOptions {
   maxRetries?: number;
 }
 
+function formatPropSchemaLine(propName: string, schema: PropSchema): string {
+  const parts: string[] = [`- ${propName}: ${schema.type}`];
+
+  if (schema.type === 'enum' && schema.enumValues?.length) {
+    parts.push(`[${schema.enumValues.join(' | ')}]`);
+  }
+
+  if (schema.required) {
+    parts.push('(required)');
+  }
+
+  if (schema.default !== undefined) {
+    parts.push(`(default: ${JSON.stringify(schema.default)})`);
+  }
+
+  if (schema.description) {
+    parts.push(`- ${schema.description}`);
+  }
+
+  return parts.join(' ');
+}
+
 function buildComponentRegistryPrompt(): string {
   const components = Object.values(COMPONENT_REGISTRY);
-  
-  return components.map(comp => `
-Component ID: ${comp.id}
+
+  return components
+    .map((comp) => {
+      const propsSchemaLines = Object.entries(comp.propsSchema)
+        .map(([propName, schema]) => formatPropSchemaLine(propName, schema))
+        .join('\n');
+
+      return `Component ID: ${comp.id}
 Name: ${comp.name}
 Category: ${comp.category}
 Description: ${comp.description}
 Use Cases: ${comp.useCases.join(', ')}
 Tags: ${comp.tags.join(', ')}
-Props: ${Object.keys(comp.propsSchema).join(', ')}
-`).join('\n');
+Props Schema:\n${propsSchemaLines}`;
+    })
+    .join('\n\n');
 }
 
 function buildComponentPresentationPrompt(
@@ -67,6 +95,11 @@ YOUR TASK:
 3. Fill in ALL required props for each component
 4. Create a cohesive, professional presentation (8-15 slides)
 5. Use variety - don't repeat the same component type unless necessary
+
+VARIETY REQUIREMENTS (MANDATORY):
+- Use at least 6 distinct componentId values across the deck (including hero and end)
+- Use "bullet_list" at most 2 times total
+- Prefer specialized components (feature, process, stats, timeline, pricing, chart, grid) instead of bullet_list whenever applicable
 
 OUTPUT FORMAT (CRITICAL):
 You MUST output ONLY valid JSON in this EXACT structure:
@@ -368,6 +401,448 @@ function coercePricingSlides(presentationData: ComponentPresentationData) {
   }
 }
 
+type Slide = ComponentPresentationData['slides'][number];
+
+const FALLBACK_ICONS = ['✨', '⚡', '🎯', '🧠', '📈', '🧩', '✅', '🚀'];
+
+function cleanListItem(text: string): string {
+  return text
+    .replace(/^[\s•▸*✓-]+/g, '')
+    .replace(/^\d+\s*[\).]\s*/g, '')
+    .trim();
+}
+
+function toStringArray(value: unknown): string[] | null {
+  if (Array.isArray(value)) {
+    const items = value
+      .map((v) => (typeof v === 'string' ? v : String(v)))
+      .map(cleanListItem)
+      .filter(Boolean);
+
+    return items.length ? items : null;
+  }
+
+  if (typeof value === 'string') {
+    const items = value
+      .split(/\r?\n/)
+      .map(cleanListItem)
+      .filter(Boolean);
+
+    return items.length ? items : null;
+  }
+
+  return null;
+}
+
+function shortTitleFromSentence(text: string): string {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= 5) return text;
+  return `${words.slice(0, 5).join(' ')}…`;
+}
+
+function splitItemToTitleAndDescription(text: string): { title: string; description: string } {
+  const cleaned = cleanListItem(text);
+
+  const match = cleaned.match(/^(.+?)\s*(?:[:–—-])\s*(.+)$/);
+  if (match) {
+    const title = match[1].trim();
+    const description = match[2].trim();
+    return {
+      title: title || shortTitleFromSentence(cleaned),
+      description: description || cleaned,
+    };
+  }
+
+  return {
+    title: shortTitleFromSentence(cleaned),
+    description: cleaned,
+  };
+}
+
+function parseStatsFromItems(items: string[]) {
+  const stats: Array<{ value: string; label: string; icon?: string }> = [];
+
+  for (const [idx, item] of items.entries()) {
+    const cleaned = cleanListItem(item);
+
+    const valueFirst = cleaned.match(
+      /^([~<>]?\s*(?:(?:\$|€|£)\s?)?\d+(?:[\.,]\d+)?%?(?:\s?[kKmMbB])?|\d+(?:\.\d+)?x)\s*(.+)$/i
+    );
+
+    if (valueFirst) {
+      const value = valueFirst[1].trim();
+      const label = valueFirst[2].replace(/^[:–—-]\s*/g, '').trim();
+      if (value && label) {
+        stats.push({ value, label, icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] });
+      }
+      continue;
+    }
+
+    const valueLast = cleaned.match(
+      /^(.+?)\s*(?:[:–—-])\s*([~<>]?\s*(?:(?:\$|€|£)\s?)?\d+(?:[\.,]\d+)?%?(?:\s?[kKmMbB])?|\d+(?:\.\d+)?x)$/i
+    );
+
+    if (valueLast) {
+      const label = valueLast[1].trim();
+      const value = valueLast[2].trim();
+      if (value && label) {
+        stats.push({ value, label, icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] });
+      }
+    }
+  }
+
+  return stats;
+}
+
+function fallbackSlideToCard(slide: Slide) {
+  const props = (slide.props ?? {}) as Record<string, any>;
+  const title = typeof props.title === 'string' && props.title.trim() ? props.title.trim() : 'Overview';
+  const subtitle = typeof props.subtitle === 'string' && props.subtitle.trim() ? props.subtitle.trim() : undefined;
+
+  let content = '';
+
+  const items = toStringArray(props.items);
+  if (items?.length) {
+    content = items.map((i) => `- ${i}`).join('\n');
+  } else if (typeof props.content === 'string' && props.content.trim()) {
+    content = props.content.trim();
+  } else {
+    const strings: string[] = [];
+    collectStrings(props, strings);
+    const lines = strings
+      .flatMap((s) => s.split(/\r?\n/))
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .filter((l) => l !== title && l !== subtitle);
+
+    content = Array.from(new Set(lines)).slice(0, 12).join('\n');
+  }
+
+  slide.componentId = 'card';
+  slide.props = {
+    title,
+    ...(subtitle ? { subtitle } : {}),
+    content: content || '- (content unavailable)',
+  };
+}
+
+function isValidValueForSchema(value: unknown, schema: PropSchema): boolean {
+  if (schema.type === 'string') return typeof value === 'string' && value.trim().length > 0;
+  if (schema.type === 'number') return typeof value === 'number' && Number.isFinite(value);
+  if (schema.type === 'boolean') return typeof value === 'boolean';
+  if (schema.type === 'array') return Array.isArray(value);
+  if (schema.type === 'object') return !!value && typeof value === 'object' && !Array.isArray(value);
+  if (schema.type === 'enum') {
+    if (typeof value !== 'string' && typeof value !== 'number') return false;
+    if (!schema.enumValues?.length) return true;
+    return schema.enumValues.includes(String(value));
+  }
+  return true;
+}
+
+function hasRequiredProps(componentId: string, props: Record<string, any>) {
+  const schema = COMPONENT_REGISTRY[componentId]?.propsSchema;
+  if (!schema) return true;
+
+  for (const [key, propSchema] of Object.entries(schema)) {
+    if (!propSchema.required) continue;
+    if (!isValidValueForSchema(props[key], propSchema)) return false;
+  }
+
+  return true;
+}
+
+function coerceBulletListToRichComponent(slide: Slide): boolean {
+  const props = (slide.props ?? {}) as Record<string, any>;
+  const title = typeof props.title === 'string' ? props.title.trim() : '';
+  const subtitle = typeof props.subtitle === 'string' ? props.subtitle.trim() : undefined;
+  const items = toStringArray(props.items);
+
+  if (!items?.length) return false;
+
+  const stats = parseStatsFromItems(items);
+  if (stats.length >= 2 && stats.length <= 6 && !/pricing|plans|tiers|packages/i.test(title)) {
+    slide.componentId = 'stats';
+    slide.props = {
+      ...(title ? { title } : {}),
+      stats: stats.slice(0, 4).map((s) => ({ value: s.value, label: s.label, icon: s.icon })),
+      layout: 'horizontal',
+    };
+    return true;
+  }
+
+  const processLike =
+    /how\s+it\s+works|process|steps|workflow|method|approach/i.test(title) ||
+    items.some((i) => /^\d+\s*[\).]/.test(i) || /\bstep\b/i.test(i));
+
+  if (processLike && items.length >= 3) {
+    slide.componentId = 'process';
+    slide.props = {
+      ...(title ? { title } : {}),
+      steps: items.slice(0, 6).map((item, idx) => {
+        const { title: stepTitle, description } = splitItemToTitleAndDescription(item);
+        return {
+          title: stepTitle,
+          description,
+          icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length],
+        };
+      }),
+      layout: 'horizontal',
+    };
+    return true;
+  }
+
+  const featureLike = /features|benefits|capabilities|what\s+you\s+get|highlights/i.test(title);
+
+  if (featureLike && items.length >= 3) {
+    slide.componentId = 'feature';
+    slide.props = {
+      ...(title ? { title } : {}),
+      ...(subtitle ? { subtitle } : {}),
+      features: items.slice(0, 6).map((item, idx) => {
+        const { title: featureTitle, description } = splitItemToTitleAndDescription(item);
+        return {
+          title: featureTitle,
+          description,
+          icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length],
+        };
+      }),
+      layout: items.length > 4 ? 'grid' : 'list',
+    };
+    return true;
+  }
+
+  if (items.length >= 4) {
+    slide.componentId = 'grid';
+    slide.props = {
+      ...(title ? { title } : {}),
+      items: items.slice(0, 8).map((item, idx) => {
+        const { title: itemTitle, description } = splitItemToTitleAndDescription(item);
+        return {
+          title: itemTitle,
+          description,
+          icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length],
+        };
+      }),
+      columns: items.length >= 8 ? 4 : items.length >= 6 ? 3 : 2,
+      itemStyle: 'card',
+    };
+    return true;
+  }
+
+  slide.componentId = 'card';
+  slide.props = {
+    title: title || 'Overview',
+    ...(subtitle ? { subtitle } : {}),
+    content: items.map((i) => `- ${i}`).join('\n'),
+  };
+
+  return true;
+}
+
+function sanitizeComponentSlides(presentationData: ComponentPresentationData) {
+  for (const slide of presentationData.slides) {
+    if (!slide.props || typeof slide.props !== 'object') {
+      slide.props = {};
+    }
+
+    const props = slide.props as Record<string, any>;
+
+    if (slide.componentId === 'hero') {
+      if (typeof props.title !== 'string' || !props.title.trim()) {
+        props.title = presentationData.title || 'Presentation';
+      }
+      continue;
+    }
+
+    if (slide.componentId === 'end') {
+      if (typeof props.title !== 'string' || !props.title.trim()) {
+        props.title = 'Thank you';
+      }
+      continue;
+    }
+
+    if (slide.componentId === 'bullet_list') {
+      if (typeof props.title !== 'string' || !props.title.trim()) {
+        props.title = 'Key Points';
+      }
+
+      const items = toStringArray(props.items);
+      props.items = items ?? [];
+      props.items = (props.items as string[]).map(cleanListItem).filter(Boolean);
+
+      if (!(props.items as string[]).length) {
+        fallbackSlideToCard(slide);
+        continue;
+      }
+    }
+
+    if (slide.componentId === 'grid') {
+      if (typeof props.columns === 'string') {
+        const parsed = parseInt(props.columns, 10);
+        if ([2, 3, 4].includes(parsed)) props.columns = parsed;
+      }
+
+      const items = Array.isArray(props.items) ? props.items : null;
+      if (items) {
+        props.items = items.slice(0, 8).map((item, idx) => {
+          if (typeof item === 'string') {
+            const { title, description } = splitItemToTitleAndDescription(item);
+            return { title, description, icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] };
+          }
+
+          const obj = (item ?? {}) as Record<string, any>;
+          const title = typeof obj.title === 'string' && obj.title.trim() ? obj.title.trim() : `Item ${idx + 1}`;
+          const description =
+            typeof obj.description === 'string' && obj.description.trim() ? obj.description.trim() : title;
+          const icon =
+            typeof obj.icon === 'string' && obj.icon.trim() ? obj.icon.trim() : FALLBACK_ICONS[idx % FALLBACK_ICONS.length];
+          const image = typeof obj.image === 'string' && obj.image.trim() ? obj.image.trim() : undefined;
+
+          return { title, description, icon, ...(image ? { image } : {}) };
+        });
+      }
+    }
+
+    if (slide.componentId === 'feature') {
+      const features = Array.isArray(props.features) ? props.features : null;
+      if (features) {
+        props.features = features.slice(0, 6).map((feature, idx) => {
+          if (typeof feature === 'string') {
+            const { title, description } = splitItemToTitleAndDescription(feature);
+            return { title, description, icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] };
+          }
+
+          const obj = (feature ?? {}) as Record<string, any>;
+          const title = typeof obj.title === 'string' && obj.title.trim() ? obj.title.trim() : `Feature ${idx + 1}`;
+          const description =
+            typeof obj.description === 'string' && obj.description.trim() ? obj.description.trim() : title;
+          const icon =
+            typeof obj.icon === 'string' && obj.icon.trim() ? obj.icon.trim() : FALLBACK_ICONS[idx % FALLBACK_ICONS.length];
+
+          return { title, description, icon };
+        });
+      }
+    }
+
+    if (slide.componentId === 'process') {
+      const steps = Array.isArray(props.steps) ? props.steps : null;
+      if (steps) {
+        props.steps = steps.slice(0, 6).map((step, idx) => {
+          if (typeof step === 'string') {
+            const { title, description } = splitItemToTitleAndDescription(step);
+            return { title, description, icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] };
+          }
+
+          const obj = (step ?? {}) as Record<string, any>;
+          const title = typeof obj.title === 'string' && obj.title.trim() ? obj.title.trim() : `Step ${idx + 1}`;
+          const description =
+            typeof obj.description === 'string' && obj.description.trim() ? obj.description.trim() : title;
+          const icon = typeof obj.icon === 'string' && obj.icon.trim() ? obj.icon.trim() : undefined;
+
+          return { title, description, ...(icon ? { icon } : {}) };
+        });
+      }
+    }
+
+    if (slide.componentId === 'stats') {
+      const stats = Array.isArray(props.stats) ? props.stats : null;
+      if (stats) {
+        if (stats.every((s) => typeof s === 'string')) {
+          const parsed = parseStatsFromItems(stats as string[]);
+          props.stats = parsed.slice(0, 4).map((s) => ({ value: s.value, label: s.label, icon: s.icon }));
+        } else {
+          props.stats = stats.slice(0, 4).map((stat, idx) => {
+            if (typeof stat === 'string') {
+              const parsed = parseStatsFromItems([stat]);
+              if (parsed[0]) return { value: parsed[0].value, label: parsed[0].label, icon: parsed[0].icon };
+              return { value: String(idx + 1), label: cleanListItem(stat), icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] };
+            }
+
+            const obj = (stat ?? {}) as Record<string, any>;
+            const value =
+              typeof obj.value === 'string'
+                ? obj.value.trim()
+                : typeof obj.value === 'number'
+                  ? String(obj.value)
+                  : '';
+            const label = typeof obj.label === 'string' && obj.label.trim() ? obj.label.trim() : `Metric ${idx + 1}`;
+            const icon = typeof obj.icon === 'string' && obj.icon.trim() ? obj.icon.trim() : FALLBACK_ICONS[idx % FALLBACK_ICONS.length];
+            const description = typeof obj.description === 'string' && obj.description.trim() ? obj.description.trim() : undefined;
+
+            return { value: value || String(idx + 1), label, icon, ...(description ? { description } : {}) };
+          });
+        }
+      }
+    }
+
+    if (slide.componentId === 'pricing') {
+      if (Array.isArray(props.plans)) {
+        props.plans = (props.plans as any[]).map((p, idx) => {
+          const name = typeof p?.name === 'string' && p.name.trim() ? p.name.trim() : `Plan ${idx + 1}`;
+          const features = toStringArray(p?.features) ?? defaultFeaturesForPlanName(name, idx, (props.plans as any[]).length);
+
+          return {
+            ...p,
+            name,
+            price: typeof p?.price === 'string' && p.price.trim() ? p.price.trim() : 'Custom',
+            period: normalizePeriod(typeof p?.period === 'string' ? p.period : undefined),
+            features,
+            highlighted: typeof p?.highlighted === 'boolean' ? p.highlighted : idx === 1,
+            cta: typeof p?.cta === 'string' && p.cta.trim() ? p.cta.trim() : `Choose ${name}`,
+          };
+        });
+      }
+    }
+
+    if (!hasRequiredProps(slide.componentId, props)) {
+      fallbackSlideToCard(slide);
+    }
+  }
+}
+
+function ensureComponentVariety(presentationData: ComponentPresentationData) {
+  const slides = presentationData.slides;
+
+  const bulletIndices = slides
+    .map((s, idx) => (s.componentId === 'bullet_list' ? idx : -1))
+    .filter((idx) => idx >= 0)
+    .filter((idx) => idx !== 0 && idx !== slides.length - 1);
+
+  if (bulletIndices.length > 2) {
+    for (const idx of bulletIndices.slice(2)) {
+      coerceBulletListToRichComponent(slides[idx]);
+    }
+  }
+
+  const uniqueComponents = new Set(slides.map((s) => s.componentId));
+  if (uniqueComponents.size >= 6) return;
+
+  for (let i = 1; i < slides.length - 1; i++) {
+    const slide = slides[i];
+    if (slide.componentId !== 'card') continue;
+
+    const content = typeof (slide.props as any)?.content === 'string' ? (slide.props as any).content : '';
+    const listItems = toStringArray(content);
+
+    if (listItems && listItems.length >= 3) {
+      slide.componentId = 'feature';
+      slide.props = {
+        title: (slide.props as any)?.title || 'Highlights',
+        subtitle: (slide.props as any)?.subtitle,
+        features: listItems.slice(0, 6).map((item, idx) => {
+          const { title, description } = splitItemToTitleAndDescription(item);
+          return { title, description, icon: FALLBACK_ICONS[idx % FALLBACK_ICONS.length] };
+        }),
+        layout: 'list',
+      };
+
+      uniqueComponents.add('feature');
+      if (uniqueComponents.size >= 6) return;
+    }
+  }
+}
+
 export async function generateComponentPresentation(
   options: GenerateComponentPresentationOptions
 ): Promise<ComponentPresentationData> {
@@ -475,11 +950,15 @@ You are an expert at:
 
         // Check if component exists
         if (!COMPONENT_REGISTRY[slide.componentId]) {
-          throw new Error(`Unknown component: ${slide.componentId}`);
+          console.warn(`Unknown componentId "${slide.componentId}" - falling back to card slide.`);
+          fallbackSlideToCard(slide);
         }
       }
 
       coercePricingSlides(presentationData);
+      sanitizeComponentSlides(presentationData);
+      ensureComponentVariety(presentationData);
+      sanitizeComponentSlides(presentationData);
 
       console.log('Successfully generated component presentation:', {
         title: presentationData.title,
