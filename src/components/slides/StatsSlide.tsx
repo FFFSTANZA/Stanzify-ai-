@@ -52,8 +52,8 @@ export function StatsSlide({
                {stat.label}
              </div>
              {stat.description && (
-               <div className="p-4 rounded-lg bg-white/20 group-hover:bg-white/40 transition-colors duration-300">
-                 <p className="text-lg opacity-75 group-hover:opacity-90 transition-opacity duration-300 leading-relaxed">
+               <div className="p-4 rounded-lg bg-gray-500/10 group-hover:bg-gray-500/20 transition-colors duration-300">
+                 <p className="text-lg opacity-80 group-hover:opacity-100 transition-opacity duration-300 leading-relaxed">
                    {stat.description}
                  </p>
                </div>
