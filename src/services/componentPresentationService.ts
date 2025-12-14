@@ -129,6 +129,24 @@ COMPONENT SELECTION RULES:
 25. **flashcard** - Use for education, key concepts
 26. **end** - Use for closing/thank you slide only
 
+PRICING COMPONENT (IMPORTANT):
+- If a slide contains multiple plans/tiers/packages + prices, you MUST use componentId "pricing" (never bullet_list for pricing).
+- For "pricing" component, props MUST be:
+  {
+    "title": "Pricing Tiers",
+    "plans": [
+      {
+        "name": "Basic",
+        "price": "$99",
+        "period": "month",
+        "features": ["Feature 1", "Feature 2", "Feature 3"],
+        "highlighted": false,
+        "cta": "Choose Basic"
+      }
+    ]
+  }
+- Each plan MUST include a non-empty "features" array (3-6 items).
+
 CONTENT GUIDELINES:
 - Make content specific and relevant to the user's topic
 - Use appropriate emojis/icons where helpful (not excessive)
@@ -149,6 +167,205 @@ CRITICAL RULES:
 - Apply theme colors where appropriate (in descriptions, emphasis)
 
 START GENERATING NOW - OUTPUT ONLY JSON:`;
+}
+
+type PricingPlan = {
+  name: string;
+  price: string;
+  period?: string;
+  features: string[];
+  highlighted?: boolean;
+  cta?: string;
+};
+
+function collectStrings(value: unknown, out: string[]) {
+  if (typeof value === 'string') {
+    out.push(value);
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) collectStrings(item, out);
+    return;
+  }
+
+  if (value && typeof value === 'object') {
+    for (const v of Object.values(value as Record<string, unknown>)) {
+      collectStrings(v, out);
+    }
+  }
+}
+
+function normalizePeriod(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const p = raw.trim().toLowerCase();
+  if (!p) return undefined;
+  if (p === 'mo' || p === 'mos' || p === 'month' || p === 'monthly') return 'month';
+  if (p === 'yr' || p === 'yrs' || p === 'year' || p === 'yearly' || p === 'annual') return 'year';
+  if (p === 'week' || p === 'wk' || p === 'weekly') return 'week';
+  if (p === 'day' || p === 'daily') return 'day';
+  return p;
+}
+
+function pickPricingTitle(slideProps: Record<string, any>, lines: string[]): string {
+  const fromProps = typeof slideProps.title === 'string' ? slideProps.title.trim() : '';
+  if (fromProps) return fromProps;
+
+  const fromLines = lines.find((l) => /pricing|plans|tiers|packages/i.test(l));
+  return fromLines?.trim() || 'Pricing';
+}
+
+function extractFeaturesFromLineRemainder(remainder: string): string[] {
+  const cleaned = remainder.replace(/^\s*[-–—|•]+\s*/g, '').trim();
+  if (!cleaned) return [];
+
+  const parts = cleaned
+    .split(/\s*(?:,|;|\||•)\s*/g)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .filter((p) => !/(?:\$|€|£)\s*\d/.test(p))
+    .filter((p) => !/\b(?:mo|month|yr|year|week|day)\b/i.test(p));
+
+  return parts.slice(0, 6);
+}
+
+function defaultFeaturesForPlanName(name: string, index: number, total: number): string[] {
+  const lower = name.toLowerCase();
+
+  if (/(enterprise|business|team|company)/.test(lower)) {
+    return ['Custom integrations', 'Dedicated support & onboarding', 'Advanced security & SSO', 'SLA & compliance options'];
+  }
+
+  if (/(premium|pro|plus|growth)/.test(lower)) {
+    return ['Everything in Basic', 'Priority support', 'Advanced analytics', 'Team collaboration features'];
+  }
+
+  if (/(free|starter|basic|essentials)/.test(lower) || index === 0) {
+    return ['Core features included', 'Standard templates', 'Email support', 'Upgrade anytime'];
+  }
+
+  if (total === 3 && index === 1) {
+    return ['Most popular feature set', 'Faster support response', 'More usage / seats', 'Advanced customization'];
+  }
+
+  return ['Core features included', 'Email support', 'Upgrade anytime'];
+}
+
+function parsePricingPlansFromLines(lines: string[]): PricingPlan[] | null {
+  const currencyRegex = /(?:\$|€|£)\s?\d+(?:[\.,]\d+)?(?:\s?[kKmM])?/;
+
+  const candidates = lines
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => l.replace(/^[\s•▸*✓-]+/g, '').trim())
+    .filter(Boolean);
+
+  const plans: PricingPlan[] = [];
+
+  for (const line of candidates) {
+    const isLikelyPlanLine =
+      currencyRegex.test(line) || /\bcustom\b|contact\s*us|call\s*us|free\b/i.test(line);
+
+    if (!isLikelyPlanLine) continue;
+
+    const named = line.match(/^(.+?)\s*(?:[:–—-])\s*(.+)$/);
+    const spaced = line.match(/^(.+?)\s+((?:\$|€|£).+)$/);
+
+    const name = (named?.[1] || spaced?.[1] || '').trim();
+    const rest = (named?.[2] || spaced?.[2] || '').trim();
+    if (!name || !rest) continue;
+
+    if (/\bcustom\b|contact\s*us|call\s*us/i.test(rest)) {
+      plans.push({
+        name,
+        price: 'Custom',
+        features: defaultFeaturesForPlanName(name, plans.length, 0),
+        cta: 'Contact Sales',
+      });
+      continue;
+    }
+
+    if (/\bfree\b/i.test(rest)) {
+      plans.push({
+        name,
+        price: 'Free',
+        features: defaultFeaturesForPlanName(name, plans.length, 0),
+        cta: 'Get Started',
+      });
+      continue;
+    }
+
+    const match = rest.match(
+      new RegExp(`(${currencyRegex.source})(?:\\s*(?:\\/|per\\s+)([a-zA-Z]+))?`, 'i')
+    );
+
+    const price = match?.[1]?.trim();
+    const period = normalizePeriod(match?.[2]);
+    if (!price) continue;
+
+    const afterPrice = match?.index !== undefined ? rest.slice(match.index + match[0].length) : '';
+    const featuresFromLine = extractFeaturesFromLineRemainder(afterPrice);
+
+    plans.push({
+      name,
+      price,
+      period,
+      features: featuresFromLine.length
+        ? featuresFromLine
+        : defaultFeaturesForPlanName(name, plans.length, 0),
+      cta: `Choose ${name}`,
+    });
+  }
+
+  if (plans.length < 2) return null;
+
+  const highlightedIndex = (() => {
+    const keywordIndex = plans.findIndex((p) => /(premium|pro|plus|recommended|popular)/i.test(p.name));
+    if (keywordIndex >= 0) return keywordIndex;
+    if (plans.length === 3) return 1;
+    return Math.min(1, plans.length - 1);
+  })();
+
+  return plans.map((p, idx) => ({
+    ...p,
+    features: p.features?.length ? p.features : defaultFeaturesForPlanName(p.name, idx, plans.length),
+    highlighted: idx === highlightedIndex,
+  }));
+}
+
+function coercePricingSlides(presentationData: ComponentPresentationData) {
+  for (const slide of presentationData.slides) {
+    if (slide.componentId === 'pricing') continue;
+
+    const strings: string[] = [];
+    collectStrings(slide.props, strings);
+
+    const lines = strings
+      .flatMap((s) => s.split(/\r?\n/))
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) continue;
+
+    const joined = lines.join(' ');
+
+    const hasPricingKeyword = /\bpricing\b|\bplans\b|\btiers\b|\bpackages\b/i.test(joined);
+    const hasPlanWord = /\b(?:basic|starter|standard|premium|pro|plus|enterprise|business|free)\b/i.test(joined);
+    const hasCurrency = /(?:\$|€|£)\s?\d/.test(joined);
+
+    const looksLikePricing = hasPricingKeyword || (hasPlanWord && hasCurrency);
+
+    if (!looksLikePricing) continue;
+
+    const plans = parsePricingPlansFromLines(lines);
+    if (!plans) continue;
+
+    slide.componentId = 'pricing';
+    slide.props = {
+      title: pickPricingTitle(slide.props, lines),
+      plans,
+    };
+  }
 }
 
 export async function generateComponentPresentation(
@@ -261,6 +478,8 @@ You are an expert at:
           throw new Error(`Unknown component: ${slide.componentId}`);
         }
       }
+
+      coercePricingSlides(presentationData);
 
       console.log('Successfully generated component presentation:', {
         title: presentationData.title,
