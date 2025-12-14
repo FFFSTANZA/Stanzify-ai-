@@ -24,35 +24,40 @@ export function CTASlide({
     <BaseSlide {...baseProps} align="center" verticalAlign="center">
       <div className="max-w-4xl mx-auto text-center">
         {icon && (
-          <div className="text-7xl mb-6 animate-in fade-in zoom-in duration-700">
+          <div className="text-8xl mb-8 animate-in fade-in zoom-in duration-700 group hover:scale-110 transition-transform">
             {icon}
           </div>
         )}
-        <h1 
-          className="text-6xl font-bold mb-6 animate-in fade-in slide-in-from-bottom-4 duration-1000"
-          style={{ color: baseProps.palette?.primary }}
+        <h1
+          className="text-6xl font-bold mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 bg-gradient-to-r from-current to-current hover:opacity-90 transition-opacity"
+          style={{
+            backgroundImage: `linear-gradient(135deg, ${baseProps.palette?.primary}, ${baseProps.palette?.accent})`,
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          } as React.CSSProperties}
         >
           {title}
         </h1>
         {subtitle && (
-          <h2 
-            className="text-3xl font-medium mb-8 opacity-90 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200"
+          <h2
+            className="text-3xl font-medium mb-8 opacity-90 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 hover:opacity-100 transition-opacity"
             style={{ color: baseProps.palette?.secondary }}
           >
             {subtitle}
           </h2>
         )}
         {description && (
-          <p className="text-xl max-w-2xl mx-auto mb-8 opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+          <p className="text-xl max-w-2xl mx-auto mb-10 opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300 hover:opacity-100 transition-opacity leading-relaxed">
             {description}
           </p>
         )}
         {features && features.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-400">
             {features.map((feature, index) => (
-              <div 
+              <div
                 key={index}
-                className="px-4 py-2 rounded-full bg-white shadow-md text-base font-medium"
+                className="group px-5 py-3 rounded-full bg-gradient-to-r from-white/95 to-white/90 shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold border border-white/50 hover:border-white/80 hover:-translate-y-1"
                 style={{ color: baseProps.palette?.accent }}
               >
                 ✓ {feature}
@@ -60,22 +65,24 @@ export function CTASlide({
             ))}
           </div>
         )}
-        <div className="flex gap-4 justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-          <button 
-            className="px-10 py-5 rounded-lg text-white text-2xl font-bold transition-transform hover:scale-105 shadow-xl"
+        <div className="flex gap-6 justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+          <button
+            className="group px-12 py-6 rounded-xl text-white text-2xl font-bold transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-110 relative overflow-hidden"
             style={{ backgroundColor: baseProps.palette?.accent }}
           >
-            {primaryButton.text}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity bg-white" />
+            <span className="relative z-10">{primaryButton.text}</span>
           </button>
           {secondaryButton && (
-            <button 
-              className="px-10 py-5 rounded-lg border-2 text-2xl font-bold transition-transform hover:scale-105"
-              style={{ 
+            <button
+              className="group px-12 py-6 rounded-xl border-2 text-2xl font-bold transition-all duration-300 hover:scale-110 relative overflow-hidden"
+              style={{
                 borderColor: baseProps.palette?.accent,
-                color: baseProps.palette?.accent 
+                color: baseProps.palette?.accent
               }}
             >
-              {secondaryButton.text}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style={{ backgroundColor: baseProps.palette?.accent }} />
+              <span className="relative z-10">{secondaryButton.text}</span>
             </button>
           )}
         </div>

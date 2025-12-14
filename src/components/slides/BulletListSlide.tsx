@@ -38,20 +38,20 @@ export function BulletListSlide({
             {subtitle}
           </h2>
         )}
-        <ul className="space-y-4">
+        <ul className="space-y-5">
           {items.map((item, index) => (
-            <li 
+            <li
               key={index}
-              className={`flex items-start gap-4 ${large ? 'text-2xl' : 'text-xl'} animate-in fade-in slide-in-from-left duration-500`}
+              className={`flex items-start gap-6 ${large ? 'text-2xl' : 'text-xl'} animate-in fade-in slide-in-from-left duration-500 p-4 rounded-lg hover:bg-white/40 transition-colors duration-300 group`}
               style={{ animationDelay: `${index * 150}ms` }}
             >
-              <span 
-                className="font-bold shrink-0 mt-1"
+              <span
+                className="font-bold shrink-0 mt-1 text-2xl group-hover:scale-110 transition-transform duration-300"
                 style={{ color: baseProps.palette?.accent }}
               >
-                {numbered ? `${index + 1}.` : '•'}
+                {numbered ? `${index + 1}.` : '✓'}
               </span>
-              <span>{item}</span>
+              <span className="group-hover:opacity-100 opacity-90 transition-opacity duration-300 leading-relaxed">{item}</span>
             </li>
           ))}
         </ul>

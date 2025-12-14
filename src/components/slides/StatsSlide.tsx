@@ -34,31 +34,33 @@ export function StatsSlide({
         </h1>
       )}
       <div className={layoutClasses[layout]}>
-        {stats.map((stat, index) => (
-          <div key={index} className="text-center animate-in fade-in zoom-in duration-700" style={{ animationDelay: `${index * 150}ms` }}>
-            {stat.icon && (
-              <div className="text-5xl mb-4">{stat.icon}</div>
-            )}
-            <div 
-              className="text-6xl md:text-7xl font-bold mb-2"
-              style={{ color: baseProps.palette?.accent }}
-            >
-              {stat.value}
-            </div>
-            <div 
-              className="text-2xl font-semibold mb-2"
-              style={{ color: baseProps.palette?.secondary }}
-            >
-              {stat.label}
-            </div>
-            {stat.description && (
-              <p className="text-lg opacity-70 max-w-xs mx-auto">
-                {stat.description}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+         {stats.map((stat, index) => (
+           <div key={index} className="text-center animate-in fade-in zoom-in duration-700 group" style={{ animationDelay: `${index * 150}ms` }}>
+             {stat.icon && (
+               <div className="text-6xl mb-4 group-hover:scale-125 transition-transform duration-300">{stat.icon}</div>
+             )}
+             <div
+               className="text-6xl md:text-7xl font-bold mb-2 group-hover:opacity-100 opacity-90 transition-opacity duration-300"
+               style={{ color: baseProps.palette?.accent }}
+             >
+               {stat.value}
+             </div>
+             <div
+               className="text-2xl font-semibold mb-3 group-hover:opacity-100 opacity-90 transition-opacity duration-300"
+               style={{ color: baseProps.palette?.primary }}
+             >
+               {stat.label}
+             </div>
+             {stat.description && (
+               <div className="p-4 rounded-lg bg-white/20 group-hover:bg-white/40 transition-colors duration-300">
+                 <p className="text-lg opacity-75 group-hover:opacity-90 transition-opacity duration-300 leading-relaxed">
+                   {stat.description}
+                 </p>
+               </div>
+             )}
+           </div>
+         ))}
+       </div>
     </BaseSlide>
   );
 }
