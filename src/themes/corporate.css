@@ -1,0 +1,41 @@
+/* Corporate Theme */
+:root[data-theme="corporate"] {
+  --slide-font-heading: 'Inter', system-ui, sans-serif;
+  --slide-font-body: 'Inter', system-ui, sans-serif;
+  --slide-spacing-unit: 1rem;
+  --slide-border-radius: 0.5rem;
+  --slide-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --slide-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+  
+  /* Animation speeds */
+  --slide-transition-fast: 0.2s;
+  --slide-transition-normal: 0.3s;
+  --slide-transition-slow: 0.5s;
+}
+
+[data-theme="corporate"] .slide-container {
+  font-family: var(--slide-font-body);
+  line-height: 1.6;
+}
+
+[data-theme="corporate"] h1,
+[data-theme="corporate"] h2,
+[data-theme="corporate"] h3 {
+  font-family: var(--slide-font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="corporate"] .slide-card {
+  border-radius: var(--slide-border-radius);
+  box-shadow: var(--slide-shadow);
+}
+
+[data-theme="corporate"] .slide-button {
+  border-radius: var(--slide-border-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--slide-transition-normal);
+}

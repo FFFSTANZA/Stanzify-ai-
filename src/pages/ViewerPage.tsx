@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { SlideViewer } from "@/components/SlideViewer";
+import { ComponentSlideViewer } from "@/components/ComponentSlideViewer";
 import { LoadingState } from "@/components/LoadingState";
 import { Button } from "@/components/ui/button";
 import { generateSlides } from "@/services/groqService";
+import { generateComponentPresentation } from "@/services/componentPresentationService";
 import { replaceImagePlaceholders } from "@/services/unsplashService";
 import { toast } from "sonner";
-import { ArrowLeft, RefreshCw, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, RefreshCw, Sparkles, Zap, Grid3X3, FileText } from "lucide-react";
 import type { PresentationConfig } from "@/types/theme";
+import type { ComponentPresentationData } from "@/types/componentSlide";
 
 export default function ViewerPage() {
   const navigate = useNavigate();
   const [markdown, setMarkdown] = useState("");
+  const [componentData, setComponentData] = useState<ComponentPresentationData | null>(null);
+  const [presentationMode, setPresentationMode] = useState<'slidev' | 'component'>('component');
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMessage, setProgressMessage] = useState("");
@@ -34,12 +39,15 @@ export default function ViewerPage() {
     setIsLoading(true);
     setIsGenerating(true);
     setMarkdown("");
-    setProgressMessage("Initializing AI-powered slidev generation...");
+    setComponentData(null);
+    setProgressMessage(
+      presentationMode === 'component'
+        ? "Initializing component-based presentation..."
+        : "Initializing AI-powered slidev generation..."
+    );
     setGenerationStartTime(Date.now());
 
     try {
-      let accumulatedMarkdown = "";
-
       const themeConfig = {
         palette: presentationConfig.palette,
         fonts: { id: 'modern', name: 'Modern Sans', heading: 'Inter', body: 'Inter' },
@@ -48,63 +56,112 @@ export default function ViewerPage() {
         imageSource: presentationConfig.imageSource,
       };
 
-      // Enhanced progress tracking
-      const updateProgress = (chunk: string) => {
-        accumulatedMarkdown += chunk;
-        setMarkdown(accumulatedMarkdown);
+      if (presentationMode === 'component') {
+        let accumulatedJson = "";
         
-        // Update progress message based on content
-        const lines = accumulatedMarkdown.split('\n');
-        const lastLine = lines[lines.length - 1].toLowerCase();
-        
-        if (lastLine.includes('layout: cover')) {
-          setProgressMessage("Creating stunning cover slide...");
-        } else if (lastLine.includes('mermaid')) {
-          setProgressMessage("Generating interactive diagrams...");
-        } else if (lastLine.includes('layout: two-cols')) {
-          setProgressMessage("Building balanced content layouts...");
-        } else if (lastLine.includes('layout: fact')) {
-          setProgressMessage("Adding compelling statistics...");
-        } else if (lastLine.includes('layout: quote')) {
-          setProgressMessage("Crafting memorable quotes...");
-        } else if (lastLine.includes('layout: end')) {
-          setProgressMessage("Finalizing presentation...");
-        }
-      };
+        const updateProgress = (chunk: string) => {
+          accumulatedJson += chunk;
+          
+          if (accumulatedJson.includes('"title"')) {
+            setProgressMessage("Structuring presentation outline...");
+          }
+          if (accumulatedJson.includes('"hero"')) {
+            setProgressMessage("Creating hero slide...");
+          }
+          if (accumulatedJson.includes('"stats"')) {
+            setProgressMessage("Adding data visualizations...");
+          }
+          if (accumulatedJson.includes('"timeline"')) {
+            setProgressMessage("Building timeline...");
+          }
+          if (accumulatedJson.includes('"end"')) {
+            setProgressMessage("Finalizing presentation...");
+          }
+        };
 
-      const result = await generateSlides({
-        prompt: presentationConfig.prompt,
-        theme: themeConfig,
-        onProgress: updateProgress,
-        temperature: 0.8, // Higher creativity for premium content
-        maxRetries: 3,
-        template: presentationConfig.slidePurpose || 'custom'
-      });
-
-      let finalMarkdown = result;
-      if (presentationConfig.imageSource !== 'none') {
-        setProgressMessage("Processing and optimizing images...");
-
-        const markdownWithImages = await replaceImagePlaceholders(result, (status) => {
-          setProgressMessage(status);
+        const result = await generateComponentPresentation({
+          prompt: presentationConfig.prompt,
+          theme: {
+            palette: presentationConfig.palette,
+            style: presentationConfig.designStyle,
+            purpose: presentationConfig.slidePurpose,
+          },
+          onProgress: updateProgress,
+          temperature: 0.7,
+          maxRetries: 3,
         });
-        finalMarkdown = markdownWithImages;
-      }
-      
-      setMarkdown(finalMarkdown);
 
-      const generationTime = generationStartTime 
-        ? Math.round((Date.now() - generationStartTime) / 1000) 
-        : 0;
+        setComponentData(result);
 
-      toast.success(
-        `🚀 Premium slidev presentation generated in ${generationTime}s!`,
-        {
-          description: "Ready to present with advanced features",
-          duration: 4000,
+        const generationTime = generationStartTime
+          ? Math.round((Date.now() - generationStartTime) / 1000)
+          : 0;
+
+        toast.success(
+          `🚀 Component presentation generated in ${generationTime}s!`,
+          {
+            description: `${result.slides.length} slides with advanced components`,
+            duration: 4000,
+          }
+        );
+      } else {
+        let accumulatedMarkdown = "";
+
+        const updateProgress = (chunk: string) => {
+          accumulatedMarkdown += chunk;
+          setMarkdown(accumulatedMarkdown);
+          
+          const lines = accumulatedMarkdown.split('\n');
+          const lastLine = lines[lines.length - 1].toLowerCase();
+          
+          if (lastLine.includes('layout: cover')) {
+            setProgressMessage("Creating stunning cover slide...");
+          } else if (lastLine.includes('mermaid')) {
+            setProgressMessage("Generating interactive diagrams...");
+          } else if (lastLine.includes('layout: two-cols')) {
+            setProgressMessage("Building balanced content layouts...");
+          } else if (lastLine.includes('layout: fact')) {
+            setProgressMessage("Adding compelling statistics...");
+          } else if (lastLine.includes('layout: quote')) {
+            setProgressMessage("Crafting memorable quotes...");
+          } else if (lastLine.includes('layout: end')) {
+            setProgressMessage("Finalizing presentation...");
+          }
+        };
+
+        const result = await generateSlides({
+          prompt: presentationConfig.prompt,
+          theme: themeConfig,
+          onProgress: updateProgress,
+          temperature: 0.8,
+          maxRetries: 3,
+          template: presentationConfig.slidePurpose || 'custom'
+        });
+
+        let finalMarkdown = result;
+        if (presentationConfig.imageSource !== 'none') {
+          setProgressMessage("Processing and optimizing images...");
+
+          const markdownWithImages = await replaceImagePlaceholders(result, (status) => {
+            setProgressMessage(status);
+          });
+          finalMarkdown = markdownWithImages;
         }
-      );
-      
+        
+        setMarkdown(finalMarkdown);
+
+        const generationTime = generationStartTime
+          ? Math.round((Date.now() - generationStartTime) / 1000)
+          : 0;
+
+        toast.success(
+          `🚀 Premium slidev presentation generated in ${generationTime}s!`,
+          {
+            description: "Ready to present with advanced features",
+            duration: 4000,
+          }
+        );
+      }
     } catch (error) {
       console.error("Error generating slides:", error);
       
@@ -117,7 +174,6 @@ export default function ViewerPage() {
         duration: 5000,
       });
       
-      // Don't navigate away immediately, let user retry
       setIsGenerating(false);
     } finally {
       setIsLoading(false);
@@ -258,6 +314,39 @@ export default function ViewerPage() {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold gradient-text">Stanzify</h1>
           <div className="flex gap-2">
+            {/* Mode Toggle */}
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={presentationMode === 'component' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => {
+                  setPresentationMode('component');
+                  if (config && !isGenerating) {
+                    generatePresentation(config);
+                  }
+                }}
+                className="gap-2"
+                disabled={isGenerating}
+              >
+                <Grid3X3 className="w-4 h-4" />
+                Components
+              </Button>
+              <Button
+                variant={presentationMode === 'slidev' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => {
+                  setPresentationMode('slidev');
+                  if (config && !isGenerating) {
+                    generatePresentation(config);
+                  }
+                }}
+                className="gap-2"
+                disabled={isGenerating}
+              >
+                <FileText className="w-4 h-4" />
+                Slidev
+              </Button>
+            </div>
             <Button 
               variant="outline" 
               onClick={handleRegenerate} 
@@ -279,7 +368,13 @@ export default function ViewerPage() {
       </header>
 
       <div className="flex-1 overflow-hidden">
-        {markdown ? (
+        {presentationMode === 'component' && componentData ? (
+          <ComponentSlideViewer
+            presentationData={componentData}
+            palette={config?.palette}
+            onNewPresentation={handleBackToCreate}
+          />
+        ) : presentationMode === 'slidev' && markdown ? (
           <SlideViewer 
             markdown={markdown} 
             title={config?.prompt?.slice(0, 50) + "..." || "Stanzify Presentation"}
