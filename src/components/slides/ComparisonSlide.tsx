@@ -45,20 +45,20 @@ export function ComparisonSlide({
       <div className="max-w-5xl mx-auto w-full">
         <div className="grid grid-cols-3 gap-4">
           <div />
-          <div 
+          <div
             className={`text-center p-6 rounded-t-xl ${highlightBest === 'left' ? 'ring-4 ring-offset-2' : ''}`}
-            style={highlightBest === 'left' ? { ringColor: baseProps.palette?.accent } : {}}
+            style={highlightBest === 'left' ? { '--tw-ring-color': baseProps.palette?.accent } as React.CSSProperties : {}}
           >
-            <h2 
+            <h2
               className="text-3xl font-bold"
               style={{ color: baseProps.palette?.secondary }}
             >
               {leftTitle}
             </h2>
           </div>
-          <div 
+          <div
             className={`text-center p-6 rounded-t-xl ${highlightBest === 'right' ? 'ring-4 ring-offset-2' : ''}`}
-            style={highlightBest === 'right' ? { ringColor: baseProps.palette?.accent } : {}}
+            style={highlightBest === 'right' ? { '--tw-ring-color': baseProps.palette?.accent } as React.CSSProperties : {}}
           >
             <h2 
               className="text-3xl font-bold"

@@ -1,8 +1,4 @@
 /* stylelint-disable */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Import component slide themes */
 @import './themes/corporate.css';
 @import './themes/modern.css';
@@ -10,6 +6,10 @@
 @import './themes/dark.css';
 @import './themes/creative.css';
 @import './themes/academic.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.

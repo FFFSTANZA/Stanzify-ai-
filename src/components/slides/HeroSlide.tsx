@@ -30,42 +30,50 @@ export function HeroSlide({
             {icon}
           </div>
         )}
-        <h1 
-          className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight animate-in fade-in slide-in-from-bottom-4 duration-1000"
-          style={{ color: baseProps.palette?.primary }}
+        <h1
+          className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight animate-in fade-in slide-in-from-bottom-4 duration-1000 bg-gradient-to-r from-current to-current hover:opacity-90 transition-opacity"
+          style={{
+            color: baseProps.palette?.primary,
+            backgroundImage: `linear-gradient(135deg, ${baseProps.palette?.primary}, ${baseProps.palette?.accent})`,
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          } as React.CSSProperties}
         >
           {title}
         </h1>
         {subtitle && (
-          <h2 
-            className="text-3xl md:text-4xl font-medium mb-8 opacity-90 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200"
+          <h2
+            className="text-3xl md:text-4xl font-medium mb-8 opacity-90 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 group hover:opacity-100 transition-opacity"
             style={{ color: baseProps.palette?.secondary }}
           >
             {subtitle}
           </h2>
         )}
         {description && (
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300 hover:opacity-100 transition-opacity">
             {description}
           </p>
         )}
         {cta && (
-          <div className="mt-12 flex gap-4 justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
-            <button 
-              className="px-8 py-4 rounded-lg text-white text-xl font-semibold transition-transform hover:scale-105 shadow-lg"
+          <div className="mt-16 flex gap-6 justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <button
+              className="group px-10 py-5 rounded-xl text-white text-xl font-semibold transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-110 relative overflow-hidden"
               style={{ backgroundColor: baseProps.palette?.accent }}
             >
-              {cta.text}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity bg-white" />
+              <span className="relative z-10">{cta.text}</span>
             </button>
             {cta.secondary && (
-              <button 
-                className="px-8 py-4 rounded-lg border-2 text-xl font-semibold transition-transform hover:scale-105"
-                style={{ 
+              <button
+                className="group px-10 py-5 rounded-xl border-2 text-xl font-semibold transition-all duration-300 hover:scale-110 relative overflow-hidden"
+                style={{
                   borderColor: baseProps.palette?.accent,
-                  color: baseProps.palette?.accent 
+                  color: baseProps.palette?.accent
                 }}
               >
-                {cta.secondary}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity" style={{ backgroundColor: baseProps.palette?.accent }} />
+                <span className="relative z-10">{cta.secondary}</span>
               </button>
             )}
           </div>

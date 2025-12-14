@@ -27,9 +27,9 @@ export function GridSlide({
   };
 
   const itemStyles = {
-    card: 'bg-white shadow-lg rounded-xl p-6 hover:shadow-xl transition-shadow',
-    minimal: 'p-6',
-    bordered: 'border-2 rounded-xl p-6 hover:border-opacity-100 transition-all',
+    card: 'bg-gradient-to-br from-white/95 to-white/90 shadow-xl rounded-2xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-white/50 hover:border-white/80',
+    minimal: 'p-8 rounded-2xl bg-gradient-to-br from-transparent to-transparent hover:bg-white/20 transition-colors duration-300 rounded-lg',
+    bordered: 'border-2 rounded-2xl p-8 hover:border-opacity-100 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg',
   };
 
   return (
@@ -42,37 +42,38 @@ export function GridSlide({
           {title}
         </h1>
       )}
-      <div className={cn('grid gap-6', gridCols[columns])}>
+      <div className={cn('grid gap-8', gridCols[columns])}>
         {items.map((item, index) => (
           <div
             key={index}
             className={cn(
               itemStyles[itemStyle],
-              'flex flex-col'
+              'group flex flex-col animate-in fade-in zoom-in duration-500'
             )}
-            style={
-              itemStyle === 'bordered'
+            style={{
+              animationDelay: `${index * 100}ms`,
+              ...(itemStyle === 'bordered'
                 ? { borderColor: baseProps.palette?.accent }
-                : {}
-            }
+                : {})
+            }}
           >
             {item.icon && (
-              <div className="text-4xl mb-4">{item.icon}</div>
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{item.icon}</div>
             )}
             {item.image && (
               <img 
                 src={item.image} 
                 alt={item.title}
-                className="w-full h-32 object-cover rounded-lg mb-4"
+                className="w-full h-40 object-cover rounded-2xl mb-4 group-hover:opacity-90 transition-opacity duration-300"
               />
             )}
             <h3 
-              className="text-xl font-bold mb-2"
-              style={{ color: baseProps.palette?.secondary }}
+              className="text-2xl font-bold mb-2 group-hover:opacity-100 opacity-90 transition-opacity duration-300"
+              style={{ color: baseProps.palette?.primary }}
             >
               {item.title}
             </h3>
-            <p className="text-base opacity-80">{item.description}</p>
+            <p className="text-base opacity-75 group-hover:opacity-90 transition-opacity duration-300 leading-relaxed">{item.description}</p>
           </div>
         ))}
       </div>

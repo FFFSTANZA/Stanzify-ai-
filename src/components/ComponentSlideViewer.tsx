@@ -157,7 +157,7 @@ export function ComponentSlideViewer({
 
   return (
     <div
-      className={`relative ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-screen'} bg-gray-900`}
+      className={`relative ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-screen'} bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900`}
       data-theme={theme}
       style={{
         '--palette-primary': activePalette.primary,
@@ -166,13 +166,23 @@ export function ComponentSlideViewer({
         '--palette-background': activePalette.background,
       } as React.CSSProperties}
     >
+      {/* Background Gradient Accent */}
+      <div 
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 50%, ${activePalette.primary}40, transparent 70%)`
+        }}
+      />
+      
       {/* Slide Container */}
-      <div className="w-full h-full flex items-center justify-center p-4">
+      <div className="relative w-full h-full flex items-center justify-center p-4">
         <div
-          className="relative w-full max-w-7xl aspect-video bg-white shadow-2xl rounded-lg overflow-hidden"
+          className="relative w-full max-w-7xl aspect-video bg-white shadow-2xl rounded-2xl overflow-hidden transition-all duration-300 ease-out animate-in fade-in"
           style={{ backgroundColor: activePalette.background }}
         >
-          <Component {...slide.props} palette={activePalette} theme={theme} />
+          <div key={currentSlide} className="animate-in fade-in duration-500">
+            <Component {...slide.props} palette={activePalette} theme={theme} />
+          </div>
         </div>
       </div>
 
